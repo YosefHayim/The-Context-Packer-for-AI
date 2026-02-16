@@ -18,10 +18,34 @@
     "llm",
     "code-analysis",
     "ast",
-    "semantic"
+    "semantic",
+    "chatgpt",
+    "claude",
+    "copilot",
+    "refactoring",
+    "code-search",
+    "typescript"
   ],
   "author": "",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YosefHayim/The-Context-Packer-for-AI.git"
+  },
+  "bugs": {
+    "url": "https://github.com/YosefHayim/The-Context-Packer-for-AI/issues"
+  },
+  "homepage": "https://github.com/YosefHayim/The-Context-Packer-for-AI#readme",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "USAGE.md",
+    "QUICKSTART.md",
+    "LICENSE"
+  ],
   "dependencies": {
     "@typescript-eslint/parser": "^8.56.0",
     "@typescript-eslint/typescript-estree": "^8.56.0",
