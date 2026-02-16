@@ -3,6 +3,8 @@
 import { ContextPacker } from '../lib/context-packer';
 import { formatForLLM, formatAsText } from '../lib/formatter';
 import { exportAs } from '../lib/exporter';
+import { loadConfig, ContextPackerConfig } from '../lib/config-loader';
+import { MultiFunctionAnalyzer, formatMultiAnalysis } from '../lib/multi-function-analyzer';
 import { ContextDepth } from '../types';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -18,9 +20,11 @@ Context Packer for AI - Find and extract function usage context
 
 USAGE:
   context-packer <function-name> [options]
+  context-packer <func1,func2,...> [options]  (multi-function analysis)
 
 ARGUMENTS:
   <function-name>     The name of the function to analyze
+                      Use comma-separated names for multiple functions (no spaces)
 
 OPTIONS:
   --dir <path>        Root directory to search (default: current directory)
@@ -33,6 +37,19 @@ OPTIONS:
   --open-ai <service> Open AI assistant: chatgpt|claude|gemini
   --help, -h          Show this help message
   --wizard, -w        Run interactive setup wizard
+
+CONFIGURATION:
+  Context Packer looks for .contextpackerrc.json in the current directory
+  for default settings. CLI flags override config file settings.
+  
+  Example config file:
+  {
+    "defaultDepth": "logic",
+    "defaultFormat": "markdown",
+    "exclude": ["**/node_modules/**", "**/dist/**"],
+    "autoCopy": false,
+    "preferredAI": "chatgpt"
+  }
 
 AI ASSISTANTS:
   chatgpt - Opens ChatGPT (https://chat.openai.com)
@@ -51,11 +68,17 @@ EXAMPLES:
   # Find all references to 'handleSubmit' with logic context
   context-packer handleSubmit
 
+  # Analyze multiple functions at once
+  context-packer validateUser,hashPassword,processData
+
   # Search in specific directory with snippet view
   context-packer handleSubmit --dir ./src --depth snippet
 
   # Save full module context to a file
   context-packer processData --depth module --output context.md
+
+  # Auto-copy and open AI assistant
+  context-packer myFunc --copy --open-ai chatgpt
 
   # Custom file patterns
   context-packer myFunc --include "**/*.ts" --exclude "**/test/**"
@@ -170,7 +193,7 @@ function runWizard() {
   console.log('');
   
   console.log('═══════════════════════════════════════════════════════════');
-  console.log('🤖 Use Case 3: Auto-Copy and Open AI Assistant (NEW!)');
+  console.log('🤖 Use Case 3: Auto-Copy and Open AI Assistant');
   console.log('═══════════════════════════════════════════════════════════');
   console.log('Automatically copy to clipboard and open AI assistant:');
   console.log('\n  context-packer myFunction --copy --open-ai chatgpt\n');
@@ -179,7 +202,31 @@ function runWizard() {
   console.log('');
   
   console.log('═══════════════════════════════════════════════════════════');
-  console.log('📄 Use Case 4: Save Context to File');
+  console.log('🔢 Use Case 4: Analyze Multiple Functions (NEW!)');
+  console.log('═══════════════════════════════════════════════════════════');
+  console.log('Analyze several functions at once:');
+  console.log('\n  context-packer validateUser,hashPassword,processData\n');
+  console.log('Example output: Shows usage context for all three functions');
+  console.log('');
+  
+  console.log('═══════════════════════════════════════════════════════════');
+  console.log('⚙️  Use Case 5: Use Config File (NEW!)');
+  console.log('═══════════════════════════════════════════════════════════');
+  console.log('Create .contextpackerrc.json with your preferences:');
+  console.log(`
+  {
+    "defaultDepth": "logic",
+    "defaultFormat": "markdown",
+    "exclude": ["**/node_modules/**"],
+    "autoCopy": true,
+    "preferredAI": "claude"
+  }
+  `);
+  console.log('Then just run: context-packer myFunction');
+  console.log('');
+  
+  console.log('═══════════════════════════════════════════════════════════');
+  console.log('📄 Use Case 6: Save Context to File');
   console.log('═══════════════════════════════════════════════════════════');
   console.log('Save function context to share later:');
   console.log('\n  context-packer myFunction --output context.md\n');
@@ -187,7 +234,7 @@ function runWizard() {
   console.log('');
   
   console.log('═══════════════════════════════════════════════════════════');
-  console.log('📊 Use Case 5: Export as JSON for Tools');
+  console.log('📊 Use Case 7: Export as JSON for Tools');
   console.log('═══════════════════════════════════════════════════════════');
   console.log('Export structured data for programmatic analysis:');
   console.log('\n  context-packer myFunction --format json --output data.json\n');
@@ -195,14 +242,14 @@ function runWizard() {
   console.log('');
   
   console.log('═══════════════════════════════════════════════════════════');
-  console.log('📁 Use Case 6: Search Specific Directory');
+  console.log('📁 Use Case 8: Search Specific Directory');
   console.log('═══════════════════════════════════════════════════════════');
   console.log('Focus your search on a specific module:');
   console.log('\n  context-packer myFunction --dir ./src/components\n');
   console.log('');
   
   console.log('═══════════════════════════════════════════════════════════');
-  console.log('🎯 Use Case 7: Exclude Test Files');
+  console.log('🎯 Use Case 9: Exclude Test Files');
   console.log('═══════════════════════════════════════════════════════════');
   console.log('Skip test files in your analysis:');
   console.log('\n  context-packer myFunction --exclude "**/*.test.ts"\n');
@@ -212,6 +259,7 @@ function runWizard() {
   console.log('🚀 Quick Start Commands');
   console.log('═══════════════════════════════════════════════════════════');
   console.log('Basic usage:         context-packer <functionName>');
+  console.log('Multiple functions:  context-packer <func1,func2,func3>');
   console.log('With directory:      context-packer <functionName> --dir ./src');
   console.log('Copy to clipboard:   context-packer <functionName> --copy');
   console.log('Open ChatGPT:        context-packer <functionName> --copy --open-ai chatgpt');
@@ -236,101 +284,185 @@ function runWizard() {
  */
 export function main() {
   const args = process.argv.slice(2);
-  const config = parseArgs(args);
+  
+  // Load config file if it exists
+  const fileConfig = loadConfig(process.cwd());
+  
+  // Parse CLI arguments
+  const cliArgs = parseArgs(args);
+  
+  // Merge config file with CLI arguments (CLI takes precedence)
+  const fullConfig: ContextPackerConfig & typeof cliArgs = {
+    ...fileConfig,
+    ...cliArgs,
+    // Ensure include/exclude arrays are properly merged
+    include: cliArgs.include.length > 0 ? cliArgs.include : fileConfig.include || [],
+    exclude: cliArgs.exclude.length > 0 ? cliArgs.exclude : fileConfig.exclude || [],
+  };
 
-  if (config.help || (!config.functionName && !config.wizard)) {
+  if (cliArgs.help || (!cliArgs.functionName && !cliArgs.wizard)) {
     printUsage();
-    process.exit(config.help ? 0 : 1);
+    process.exit(cliArgs.help ? 0 : 1);
   }
   
-  if (config.wizard) {
+  if (cliArgs.wizard) {
     runWizard();
     process.exit(0);
   }
 
-  const functionName = config.functionName!;
+  const functionName = cliArgs.functionName!;
 
   // Check if directory exists
-  if (!fs.existsSync(config.dir)) {
-    console.error(`Error: Directory '${config.dir}' does not exist.`);
+  if (!fs.existsSync(cliArgs.dir)) {
+    console.error(`Error: Directory '${cliArgs.dir}' does not exist.`);
     process.exit(1);
   }
 
-  console.error(`Analyzing function: ${functionName}`);
-  console.error(`Search directory: ${config.dir}`);
-  console.error(`Context depth: ${config.depth}`);
-  console.error('');
+  // Check if this is a multi-function analysis
+  if (MultiFunctionAnalyzer.isMultiFunction(functionName)) {
+    console.error(`Analyzing multiple functions: ${functionName}`);
+    console.error(`Search directory: ${cliArgs.dir}`);
+    console.error(`Context depth: ${cliArgs.depth}`);
+    console.error('');
 
-  // Create context packer
-  const packer = new ContextPacker({
-    rootDir: config.dir,
-    depth: config.depth,
-    include: config.include.length > 0 ? config.include : undefined,
-    exclude: config.exclude.length > 0 ? config.exclude : undefined,
-  });
+    // Create context packer
+    const packer = new ContextPacker({
+      rootDir: cliArgs.dir,
+      depth: cliArgs.depth,
+      include: fullConfig.include.length > 0 ? fullConfig.include : undefined,
+      exclude: fullConfig.exclude.length > 0 ? fullConfig.exclude : undefined,
+    });
 
-  // Analyze the function
-  const result = packer.analyze(functionName);
+    // Create multi-function analyzer
+    const analyzer = new MultiFunctionAnalyzer(packer);
 
-  console.error(`Found ${result.count} reference(s)`);
-  console.error('');
+    // Parse function names and analyze
+    const functionNames = MultiFunctionAnalyzer.parseFunctionList(functionName);
+    const result = analyzer.analyze(functionNames);
 
-  // Format the output
-  let output: string;
-  if (config.format === 'markdown') {
-    output = formatForLLM(result, config.dir);
-  } else if (config.format === 'text') {
-    output = formatAsText(result, config.dir);
+    console.error(`Analyzed ${result.summary.functionCount} functions`);
+    console.error(`Total references: ${result.summary.totalMatches}`);
+    console.error('');
+
+    // Format the output
+    let output: string;
+    if (cliArgs.format === 'markdown') {
+      output = formatMultiAnalysis(result, 'markdown');
+    } else if (cliArgs.format === 'text') {
+      output = formatMultiAnalysis(result, 'text');
+    } else if (cliArgs.format === 'json') {
+      output = formatMultiAnalysis(result, 'json');
+    } else {
+      // For other formats, use JSON for now
+      output = formatMultiAnalysis(result, 'json');
+    }
+
+    // Write or print output
+    if (cliArgs.output) {
+      fs.writeFileSync(cliArgs.output, output, 'utf-8');
+      console.error(`Output written to: ${cliArgs.output}`);
+    } else {
+      console.log(output);
+    }
+
+    // Copy to clipboard if requested
+    if (cliArgs.copy) {
+      try {
+        clipboardy.writeSync(output);
+        console.error('✅ Output copied to clipboard!');
+      } catch (error) {
+        console.error('⚠️  Failed to copy to clipboard:', error);
+      }
+    }
+
+    // Open AI assistant if requested
+    if (cliArgs.openAI) {
+      openAIAssistant(cliArgs.openAI, cliArgs.copy);
+    }
   } else {
-    // Use the new exporter for json, csv, txt, xml
-    output = exportAs(config.format, result, config.dir);
-  }
+    // Single function analysis
+    console.error(`Analyzing function: ${functionName}`);
+    console.error(`Search directory: ${cliArgs.dir}`);
+    console.error(`Context depth: ${cliArgs.depth}`);
+    console.error('');
 
-  // Write or print output
-  if (config.output) {
-    fs.writeFileSync(config.output, output, 'utf-8');
-    console.error(`Output written to: ${config.output}`);
-  } else {
-    console.log(output);
-  }
+    // Create context packer
+    const packer = new ContextPacker({
+      rootDir: cliArgs.dir,
+      depth: cliArgs.depth,
+      include: fullConfig.include.length > 0 ? fullConfig.include : undefined,
+      exclude: fullConfig.exclude.length > 0 ? fullConfig.exclude : undefined,
+    });
 
-  // Copy to clipboard if requested
-  if (config.copy) {
-    try {
-      clipboardy.writeSync(output);
-      console.error('✅ Output copied to clipboard!');
-    } catch (error) {
-      console.error('⚠️  Failed to copy to clipboard:', error);
+    // Analyze the function
+    const result = packer.analyze(functionName);
+
+    console.error(`Found ${result.count} reference(s)`);
+    console.error('');
+
+    // Format the output
+    let output: string;
+    if (cliArgs.format === 'markdown') {
+      output = formatForLLM(result, cliArgs.dir);
+    } else if (cliArgs.format === 'text') {
+      output = formatAsText(result, cliArgs.dir);
+    } else {
+      // Use the new exporter for json, csv, txt, xml
+      output = exportAs(cliArgs.format, result, cliArgs.dir);
+    }
+
+    // Write or print output
+    if (cliArgs.output) {
+      fs.writeFileSync(cliArgs.output, output, 'utf-8');
+      console.error(`Output written to: ${cliArgs.output}`);
+    } else {
+      console.log(output);
+    }
+
+    // Copy to clipboard if requested
+    if (cliArgs.copy) {
+      try {
+        clipboardy.writeSync(output);
+        console.error('✅ Output copied to clipboard!');
+      } catch (error) {
+        console.error('⚠️  Failed to copy to clipboard:', error);
+      }
+    }
+
+    // Open AI assistant if requested
+    if (cliArgs.openAI) {
+      openAIAssistant(cliArgs.openAI, cliArgs.copy);
     }
   }
+}
 
-  // Open AI assistant if requested
-  if (config.openAI) {
-    const aiUrls = {
-      chatgpt: 'https://chat.openai.com',
-      claude: 'https://claude.ai',
-      gemini: 'https://gemini.google.com',
-    };
+/**
+ * Open AI assistant in browser
+ */
+function openAIAssistant(service: 'chatgpt' | 'claude' | 'gemini', copied: boolean) {
+  const aiUrls = {
+    chatgpt: 'https://chat.openai.com',
+    claude: 'https://claude.ai',
+    gemini: 'https://gemini.google.com',
+  };
 
-    const aiService = config.openAI;
-    const url = aiUrls[aiService];
-    const serviceName = aiService.charAt(0).toUpperCase() + aiService.slice(1);
-    
-    console.error(`🚀 Opening ${serviceName}...`);
-    
-    (async () => {
-      try {
-        await open(url);
-        console.error(`✅ ${serviceName} opened in browser`);
-        if (config.copy) {
-          console.error('💡 Tip: The context is already in your clipboard - just paste it!');
-        }
-      } catch (error) {
-        console.error(`⚠️  Failed to open browser:`, error);
-        console.error(`   You can manually visit: ${url}`);
+  const url = aiUrls[service];
+  const serviceName = service.charAt(0).toUpperCase() + service.slice(1);
+  
+  console.error(`🚀 Opening ${serviceName}...`);
+  
+  (async () => {
+    try {
+      await open(url);
+      console.error(`✅ ${serviceName} opened in browser`);
+      if (copied) {
+        console.error('💡 Tip: The context is already in your clipboard - just paste it!');
       }
-    })();
-  }
+    } catch (error) {
+      console.error(`⚠️  Failed to open browser:`, error);
+      console.error(`   You can manually visit: ${url}`);
+    }
+  })();
 }
 
 // Run CLI if this is the main module
