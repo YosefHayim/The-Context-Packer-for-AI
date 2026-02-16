@@ -5,7 +5,7 @@ This document summarizes all features added to Context Packer in this update.
 ## 🎯 Overview
 
 Three major enhancements were added:
-1. **Comprehensive Unit Testing** - 63 tests with Vitest
+1. **Comprehensive Unit Testing** - 97 tests with Vitest
 2. **Multiple Export Formats** - 6 formats for different use cases
 3. **Interactive CLI Wizard** - Guided examples for new users
 
@@ -15,7 +15,7 @@ Three major enhancements were added:
 
 ### What Was Added
 - Complete test framework using Vitest
-- 63 comprehensive unit tests
+- 97 comprehensive unit tests
 - Test fixtures for realistic scenarios
 - Coverage reporting capability
 

@@ -60,6 +60,8 @@ describe('context-extractor', () => {
       const references = findReferencesInFile(sampleFile, 'testFunction');
       const refInFunction = references.find(ref => ref.line > 6 && ref.line < 11);
       
+      expect(refInFunction).toBeDefined();
+      
       if (refInFunction) {
         const context = extractReferenceContext(
           refInFunction,

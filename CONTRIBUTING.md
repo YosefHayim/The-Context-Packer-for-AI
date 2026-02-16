@@ -79,9 +79,31 @@ We'd love to hear your ideas! Open an issue with:
 
 ## Testing
 
-Currently, the project uses manual testing with examples. Contributions to add automated tests are very welcome!
+The project includes a comprehensive Vitest test suite. Please ensure all tests pass before submitting your changes.
 
 To test your changes:
+
+1. Run the test suite:
+```bash
+npm test
+```
+
+2. Run tests in watch mode during development:
+```bash
+npm run test:watch
+```
+
+3. View test coverage:
+```bash
+npm run test:coverage
+```
+
+4. Use the interactive test UI:
+```bash
+npm run test:ui
+```
+
+When adding new features, please include appropriate tests. The test files are located in `src/tests/lib/`.
 
 ```bash
 # Build

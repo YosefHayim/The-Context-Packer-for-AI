@@ -36,20 +36,24 @@ src/tests/
     ├── reference-finder.test.ts
     ├── context-extractor.test.ts
     ├── formatter.test.ts
-    └── context-packer.test.ts
+    ├── context-packer.test.ts
+    ├── config-loader.test.ts
+    └── multi-function-analyzer.test.ts
 ```
 
 ## Test Coverage
 
-Current test coverage: **63 tests passing**
+Current test coverage is continuously evolving as new suites are added. Run `npm test` (or `npm run test:coverage`) to see the latest test counts and coverage details.
 
-| Module | Tests | Description |
-|--------|-------|-------------|
-| **parser.test.ts** | 11 | File parsing, line extraction |
-| **reference-finder.test.ts** | 12 | Function call detection |
-| **context-extractor.test.ts** | 9 | Context extraction at 3 depths |
-| **formatter.test.ts** | 18 | Output formatting |
-| **context-packer.test.ts** | 13 | Integration tests |
+| Module | Notes |
+|--------|-------|
+| **parser.test.ts** | File parsing, line extraction |
+| **reference-finder.test.ts** | Function call detection |
+| **context-extractor.test.ts** | Context extraction at multiple depths |
+| **formatter.test.ts** | Output formatting |
+| **context-packer.test.ts** | Integration and end-to-end behavior |
+| **config-loader.test.ts** | Configuration file loading |
+| **multi-function-analyzer.test.ts** | Multi-function analysis |
 
 ## Writing Tests
 

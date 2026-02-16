@@ -290,7 +290,6 @@ Shows the entire file where the function is used.
 - `customAIServices`: Custom AI service URLs
 - `cache`: Enable caching (future feature)
 - `cacheDir`: Cache directory path
-| `--help` | Show help message | - |
 
 ## Examples
 
@@ -466,10 +465,10 @@ MIT
 
 ## 🧪 Testing
 
-Context Packer has comprehensive test coverage with 63 unit tests:
+Context Packer has comprehensive test coverage with 97 unit tests:
 
 ```bash
-npm test              # Run all tests (63/63 passing)
+npm test              # Run all tests (97/97 passing)
 npm run test:watch   # Watch mode for development
 npm run test:coverage # Generate coverage report
 ```
@@ -478,6 +477,10 @@ Test categories:
 - Parser tests (11 tests)
 - Reference finder tests (12 tests)
 - Context extractor tests (9 tests)
+- Formatter tests (18 tests)
+- Context packer tests (13 tests)
+- Config loader tests (15 tests)
+- Multi-function analyzer tests (19 tests)
 - Formatter tests (18 tests)
 - Integration tests (13 tests)
 
