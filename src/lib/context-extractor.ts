@@ -69,6 +69,6 @@ export function extractMultipleContexts(
   maxContextLines?: number
 ): FunctionReference[] {
   return locations.map((location) =>
-    extractReferenceContext(location, depth, maxContextLines)
+    extractReferenceContext(location, depth, maxContextLines ?? 100)
   );
 }

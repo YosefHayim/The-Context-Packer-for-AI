@@ -1,5 +1,6 @@
 import * as path from 'path';
 import type { AnalysisResult } from '../types';
+import { formatForLLM, formatAsText } from './formatter';
 
 /**
  * Export format JSON - structured data for programmatic use
@@ -108,7 +109,9 @@ export function formatAsXML(result: AnalysisResult, rootDir: string): string {
     if (ref.enclosingScope) {
       lines.push(`      <scope>${escapeXML(ref.enclosingScope)}</scope>`);
     }
-    lines.push(`      <context><![CDATA[${ref.context}]]></context>`);
+    // Safely handle CDATA sections by splitting on ]]> and using multiple CDATA blocks
+    const safeCDATA = ref.context.replace(/]]>/g, ']]]]><![CDATA[>');
+    lines.push(`      <context><![CDATA[${safeCDATA}]]></context>`);
     lines.push('    </reference>');
   });
   
@@ -148,9 +151,9 @@ export function exportAs(
     case 'xml':
       return formatAsXML(result, rootDir);
     case 'markdown':
+      return formatForLLM(result, rootDir);
     case 'text':
-      // These are handled by the existing formatter
-      throw new Error('Use formatForLLM or formatAsText for markdown/text formats');
+      return formatAsText(result, rootDir);
     default:
       throw new Error(`Unsupported export format: ${format}`);
   }

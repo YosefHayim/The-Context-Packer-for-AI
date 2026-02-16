@@ -1,6 +1,6 @@
 /**
  * Configuration file loader for Context Packer
- * Supports .contextpackerrc.json and .contextpacker.config.js
+ * Supports .contextpackerrc.json files
  */
 
 import { readFileSync, existsSync } from 'fs';
@@ -77,8 +77,8 @@ export function mergeConfig(
     include: user.include || defaults.include,
     exclude: user.exclude || defaults.exclude,
     customAIServices: {
-      ...defaults.customAIServices,
-      ...user.customAIServices,
+      ...(defaults.customAIServices || {}),
+      ...(user.customAIServices || {}),
     },
   };
 }

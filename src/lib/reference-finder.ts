@@ -31,7 +31,8 @@ export function findReferencesInFile(
       }
       // Method call: obj.functionName()
       else if (node.callee.type === AST_NODE_TYPES.MemberExpression) {
-        if (node.callee.property.type === AST_NODE_TYPES.Identifier) {
+        // Only match non-computed member expressions (obj.prop, not obj[prop])
+        if (!node.callee.computed && node.callee.property.type === AST_NODE_TYPES.Identifier) {
           calleeName = node.callee.property.name;
         }
       }

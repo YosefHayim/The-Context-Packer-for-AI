@@ -13,6 +13,7 @@ export interface MultiAnalysisResult {
   summary: {
     functionCount: number;
     filesScanned: number;
+    filesWithMatches: number;
     totalMatches: number;
   };
 }
@@ -30,16 +31,19 @@ export class MultiFunctionAnalyzer {
   analyze(functionNames: string[]): MultiAnalysisResult {
     const results = new Map<string, AnalysisResult>();
     let totalReferences = 0;
-    const filesScannedSet = new Set<string>();
+    const filesWithMatchesSet = new Set<string>();
 
     for (const functionName of functionNames) {
       const result = this.packer.analyze(functionName);
       results.set(functionName, result);
       totalReferences += result.references.length;
 
-      // Track unique files
-      result.references.forEach(ref => filesScannedSet.add(ref.location.filePath));
+      // Track unique files with matches
+      result.references.forEach(ref => filesWithMatchesSet.add(ref.location.filePath));
     }
+
+    // Get total files scanned from the context packer
+    const stats = this.packer.getStats();
 
     return {
       functions: functionNames,
@@ -47,7 +51,8 @@ export class MultiFunctionAnalyzer {
       totalReferences,
       summary: {
         functionCount: functionNames.length,
-        filesScanned: filesScannedSet.size,
+        filesScanned: stats.totalFiles,
+        filesWithMatches: filesWithMatchesSet.size,
         totalMatches: totalReferences,
       },
     };
@@ -100,7 +105,8 @@ export function formatMultiAnalysis(
     let output = '=== MULTI-FUNCTION ANALYSIS ===\n\n';
     output += `Analyzed Functions: ${result.functions.join(', ')}\n`;
     output += `Total References: ${result.totalReferences}\n`;
-    output += `Files Scanned: ${result.summary.filesScanned}\n\n`;
+    output += `Files Scanned: ${result.summary.filesScanned}\n`;
+    output += `Files With Matches: ${result.summary.filesWithMatches}\n\n`;
 
     for (const [functionName, data] of result.results) {
       output += `--- ${functionName} (${data.references.length} references) ---\n`;
@@ -117,7 +123,8 @@ export function formatMultiAnalysis(
   let output = '# Multi-Function Analysis\n\n';
   output += `**Analyzed Functions:** ${result.functions.join(', ')}  \n`;
   output += `**Total References:** ${result.totalReferences}  \n`;
-  output += `**Files Scanned:** ${result.summary.filesScanned}\n\n`;
+  output += `**Files Scanned:** ${result.summary.filesScanned}  \n`;
+  output += `**Files With Matches:** ${result.summary.filesWithMatches}\n\n`;
 
   for (const [functionName, data] of result.results) {
     output += `## ${functionName}\n\n`;
