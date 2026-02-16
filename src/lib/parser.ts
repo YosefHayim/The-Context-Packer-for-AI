@@ -6,9 +6,9 @@ import type { CodeLocation } from '../types';
  * Parse a TypeScript/JavaScript file and return its AST
  */
 export function parseFile(filePath: string) {
-  const content = fs.readFileSync(filePath, 'utf-8');
-  
   try {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    
     return parse(content, {
       loc: true,
       range: true,

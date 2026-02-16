@@ -7,6 +7,7 @@
 
 export { ContextPacker, createContextPacker } from './lib/context-packer';
 export { formatForLLM, formatAsText } from './lib/formatter';
+export { exportAs, formatAsJSON, formatAsCSV, formatAsPlainText, formatAsXML } from './lib/exporter';
 export { findReferencesInFile, findEnclosingScope } from './lib/reference-finder';
 export { extractReferenceContext, extractMultipleContexts } from './lib/context-extractor';
 export { parseFile, getFileContent, getLine, getLines } from './lib/parser';
