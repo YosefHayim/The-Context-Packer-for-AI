@@ -62,6 +62,52 @@ const markdown = formatForLLM(result, './src');
 console.log(markdown);
 ```
 
+## 🚀 New Features
+
+### Interactive Setup Wizard
+Get started quickly with guided examples:
+```bash
+context-packer --wizard
+```
+
+The wizard shows you:
+- 6 common use cases with ready-to-run commands
+- Quick start examples
+- All available export formats
+- Help documentation links
+
+### Multiple Export Formats
+Export your analysis in the format you need:
+
+```bash
+# For AI assistants (default)
+context-packer myFunc --format markdown --output context.md
+
+# For automation and tools
+context-packer myFunc --format json --output data.json
+
+# For spreadsheet analysis
+context-packer myFunc --format csv --output report.csv
+
+# For legacy systems
+context-packer myFunc --format xml --output data.xml
+```
+
+**Available formats:** `markdown`, `text`, `json`, `csv`, `txt`, `xml`
+
+See [docs/EXPORT_FORMATS.md](docs/EXPORT_FORMATS.md) for detailed format documentation.
+
+### Comprehensive Testing
+Now with 63 unit tests covering all functionality:
+
+```bash
+npm test              # Run all tests
+npm run test:watch   # Watch mode
+npm run test:coverage # With coverage report
+```
+
+See [docs/TESTING.md](docs/TESTING.md) for testing guide.
+
 ## Context Depth Modes
 
 ### 1. Snippet View (`--depth snippet`)
@@ -281,5 +327,33 @@ Contributions welcome! This is an early-stage project and we'd love your help.
 MIT
 
 ---
+
+## 📚 Documentation
+
+- **[QUICKSTART.md](QUICKSTART.md)** - Get started in 5 minutes
+- **[USAGE.md](USAGE.md)** - Comprehensive usage guide with examples
+- **[BEST_PRACTICES.md](BEST_PRACTICES.md)** - Best practices for using Context Packer
+- **[docs/EXPORT_FORMATS.md](docs/EXPORT_FORMATS.md)** - Guide to all export formats
+- **[docs/TESTING.md](docs/TESTING.md)** - Testing guide and how to write tests
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - How to contribute to the project
+
+## 🧪 Testing
+
+Context Packer has comprehensive test coverage with 63 unit tests:
+
+```bash
+npm test              # Run all tests (63/63 passing)
+npm run test:watch   # Watch mode for development
+npm run test:coverage # Generate coverage report
+```
+
+Test categories:
+- Parser tests (11 tests)
+- Reference finder tests (12 tests)
+- Context extractor tests (9 tests)
+- Formatter tests (18 tests)
+- Integration tests (13 tests)
+
+All tests use TypeScript and Vitest. See [docs/TESTING.md](docs/TESTING.md) for details.
 
 **Made for developers who are tired of manual context gathering** 🚀
