@@ -44,6 +44,13 @@ context-packer processData --depth module
 
 # Save to file
 context-packer myFunction --output context.md
+
+# 🆕 Auto-copy to clipboard and open AI assistant
+context-packer myFunction --copy --open-ai chatgpt
+
+# Available AI assistants: chatgpt, claude, gemini
+context-packer myFunction --copy --open-ai claude
+context-packer myFunction --copy --open-ai gemini
 ```
 
 ### Library Usage
@@ -64,6 +71,34 @@ console.log(markdown);
 
 ## 🚀 New Features
 
+### 🔥 Auto-Copy & Open AI Assistant (Latest!)
+Automatically copy analysis to clipboard and open your AI assistant:
+
+```bash
+# Copy to clipboard and open ChatGPT
+context-packer myFunction --copy --open-ai chatgpt
+
+# Copy to clipboard and open Claude
+context-packer myFunction --copy --open-ai claude
+
+# Copy to clipboard and open Gemini
+context-packer myFunction --copy --open-ai gemini
+
+# Just copy to clipboard (without opening browser)
+context-packer myFunction --copy
+```
+
+**What happens:**
+1. ✅ Analysis runs and formats the output
+2. ✅ Output is automatically copied to your clipboard
+3. ✅ Your chosen AI assistant opens in your default browser
+4. ✅ You can immediately paste (Ctrl+V / Cmd+V) the context!
+
+**Supported AI assistants:**
+- `chatgpt` - Opens https://chat.openai.com
+- `claude` - Opens https://claude.ai
+- `gemini` - Opens https://gemini.google.com
+
 ### Interactive Setup Wizard
 Get started quickly with guided examples:
 ```bash
@@ -71,7 +106,7 @@ context-packer --wizard
 ```
 
 The wizard shows you:
-- 6 common use cases with ready-to-run commands
+- 7 common use cases with ready-to-run commands
 - Quick start examples
 - All available export formats
 - Help documentation links

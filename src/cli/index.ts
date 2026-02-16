@@ -6,6 +6,8 @@ import { exportAs } from '../lib/exporter';
 import { ContextDepth } from '../types';
 import * as path from 'path';
 import * as fs from 'fs';
+import clipboardy from 'clipboardy';
+import open from 'open';
 
 /**
  * Print usage information
@@ -27,8 +29,15 @@ OPTIONS:
   --format <type>     Output format: markdown|text|json|csv|txt|xml (default: markdown)
   --include <pattern> File patterns to include (can be specified multiple times)
   --exclude <pattern> File patterns to exclude (can be specified multiple times)
+  --copy              Copy output to clipboard
+  --open-ai <service> Open AI assistant: chatgpt|claude|gemini
   --help, -h          Show this help message
   --wizard, -w        Run interactive setup wizard
+
+AI ASSISTANTS:
+  chatgpt - Opens ChatGPT (https://chat.openai.com)
+  claude  - Opens Claude (https://claude.ai)
+  gemini  - Opens Gemini (https://gemini.google.com)
 
 EXPORT FORMATS:
   markdown  - LLM-optimized markdown with code blocks (default)
@@ -71,6 +80,8 @@ function parseArgs(args: string[]): {
   exclude: string[];
   help: boolean;
   wizard: boolean;
+  copy: boolean;
+  openAI?: 'chatgpt' | 'claude' | 'gemini';
 } {
   const result = {
     dir: process.cwd(),
@@ -80,6 +91,7 @@ function parseArgs(args: string[]): {
     exclude: [] as string[],
     help: false,
     wizard: false,
+    copy: false,
   };
 
   let functionName: string | undefined;
@@ -113,6 +125,15 @@ function parseArgs(args: string[]): {
       result.include.push(args[++i]);
     } else if (arg === '--exclude') {
       result.exclude.push(args[++i]);
+    } else if (arg === '--copy') {
+      result.copy = true;
+    } else if (arg === '--open-ai') {
+      const service = args[++i];
+      if (!['chatgpt', 'claude', 'gemini'].includes(service)) {
+        console.error(`Error: Invalid AI service '${service}'. Must be chatgpt, claude, or gemini.`);
+        process.exit(1);
+      }
+      (result as any).openAI = service;
     } else if (!arg.startsWith('-')) {
       functionName = arg;
     } else {
@@ -149,15 +170,24 @@ function runWizard() {
   console.log('');
   
   console.log('═══════════════════════════════════════════════════════════');
-  console.log('🤖 Use Case 3: Paste Context into AI');
+  console.log('🤖 Use Case 3: Auto-Copy and Open AI Assistant (NEW!)');
   console.log('═══════════════════════════════════════════════════════════');
-  console.log('Save function context to share with ChatGPT/Claude:');
+  console.log('Automatically copy to clipboard and open AI assistant:');
+  console.log('\n  context-packer myFunction --copy --open-ai chatgpt\n');
+  console.log('Available AI assistants: chatgpt, claude, gemini');
+  console.log('The context is copied to your clipboard and ready to paste!');
+  console.log('');
+  
+  console.log('═══════════════════════════════════════════════════════════');
+  console.log('📄 Use Case 4: Save Context to File');
+  console.log('═══════════════════════════════════════════════════════════');
+  console.log('Save function context to share later:');
   console.log('\n  context-packer myFunction --output context.md\n');
   console.log('Then paste context.md into your AI assistant');
   console.log('');
   
   console.log('═══════════════════════════════════════════════════════════');
-  console.log('📊 Use Case 4: Export as JSON for Tools');
+  console.log('📊 Use Case 5: Export as JSON for Tools');
   console.log('═══════════════════════════════════════════════════════════');
   console.log('Export structured data for programmatic analysis:');
   console.log('\n  context-packer myFunction --format json --output data.json\n');
@@ -165,14 +195,14 @@ function runWizard() {
   console.log('');
   
   console.log('═══════════════════════════════════════════════════════════');
-  console.log('📁 Use Case 5: Search Specific Directory');
+  console.log('📁 Use Case 6: Search Specific Directory');
   console.log('═══════════════════════════════════════════════════════════');
   console.log('Focus your search on a specific module:');
   console.log('\n  context-packer myFunction --dir ./src/components\n');
   console.log('');
   
   console.log('═══════════════════════════════════════════════════════════');
-  console.log('🎯 Use Case 6: Exclude Test Files');
+  console.log('🎯 Use Case 7: Exclude Test Files');
   console.log('═══════════════════════════════════════════════════════════');
   console.log('Skip test files in your analysis:');
   console.log('\n  context-packer myFunction --exclude "**/*.test.ts"\n');
@@ -183,6 +213,8 @@ function runWizard() {
   console.log('═══════════════════════════════════════════════════════════');
   console.log('Basic usage:         context-packer <functionName>');
   console.log('With directory:      context-packer <functionName> --dir ./src');
+  console.log('Copy to clipboard:   context-packer <functionName> --copy');
+  console.log('Open ChatGPT:        context-packer <functionName> --copy --open-ai chatgpt');
   console.log('Save to file:        context-packer <functionName> --output out.md');
   console.log('Export as JSON:      context-packer <functionName> --format json');
   console.log('Full module context: context-packer <functionName> --depth module');
@@ -260,6 +292,44 @@ export function main() {
     console.error(`Output written to: ${config.output}`);
   } else {
     console.log(output);
+  }
+
+  // Copy to clipboard if requested
+  if (config.copy) {
+    try {
+      clipboardy.writeSync(output);
+      console.error('✅ Output copied to clipboard!');
+    } catch (error) {
+      console.error('⚠️  Failed to copy to clipboard:', error);
+    }
+  }
+
+  // Open AI assistant if requested
+  if (config.openAI) {
+    const aiUrls = {
+      chatgpt: 'https://chat.openai.com',
+      claude: 'https://claude.ai',
+      gemini: 'https://gemini.google.com',
+    };
+
+    const aiService = config.openAI;
+    const url = aiUrls[aiService];
+    const serviceName = aiService.charAt(0).toUpperCase() + aiService.slice(1);
+    
+    console.error(`🚀 Opening ${serviceName}...`);
+    
+    (async () => {
+      try {
+        await open(url);
+        console.error(`✅ ${serviceName} opened in browser`);
+        if (config.copy) {
+          console.error('💡 Tip: The context is already in your clipboard - just paste it!');
+        }
+      } catch (error) {
+        console.error(`⚠️  Failed to open browser:`, error);
+        console.error(`   You can manually visit: ${url}`);
+      }
+    })();
   }
 }
 
