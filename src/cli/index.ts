@@ -96,25 +96,22 @@ CONTEXT DEPTHS:
 function parseArgs(args: string[]): {
   functionName?: string;
   dir: string;
-  depth: ContextDepth;
+  depth?: ContextDepth;
   output?: string;
-  format: 'markdown' | 'text' | 'json' | 'csv' | 'txt' | 'xml';
+  format?: 'markdown' | 'text' | 'json' | 'csv' | 'txt' | 'xml';
   include: string[];
   exclude: string[];
   help: boolean;
   wizard: boolean;
-  copy: boolean;
+  copy?: boolean;
   openAI?: 'chatgpt' | 'claude' | 'gemini';
 } {
-  const result = {
+  const result: any = {
     dir: process.cwd(),
-    depth: ContextDepth.LOGIC,
-    format: 'markdown' as 'markdown' | 'text' | 'json' | 'csv' | 'txt' | 'xml',
     include: [] as string[],
     exclude: [] as string[],
     help: false,
     wizard: false,
-    copy: false,
   };
 
   let functionName: string | undefined;
@@ -127,31 +124,63 @@ function parseArgs(args: string[]): {
     } else if (arg === '--wizard' || arg === '-w') {
       result.wizard = true;
     } else if (arg === '--dir') {
-      result.dir = path.resolve(args[++i]);
+      const value = args[++i];
+      if (!value) {
+        console.error('Error: --dir requires a directory path');
+        process.exit(1);
+      }
+      result.dir = path.resolve(value);
     } else if (arg === '--depth') {
       const depth = args[++i];
+      if (!depth) {
+        console.error('Error: --depth requires a value (snippet, logic, or module)');
+        process.exit(1);
+      }
       if (!['snippet', 'logic', 'module'].includes(depth)) {
         console.error(`Error: Invalid depth '${depth}'. Must be snippet, logic, or module.`);
         process.exit(1);
       }
       result.depth = depth as ContextDepth;
     } else if (arg === '--output') {
-      (result as any).output = args[++i];
+      const value = args[++i];
+      if (!value) {
+        console.error('Error: --output requires a file path');
+        process.exit(1);
+      }
+      (result as any).output = value;
     } else if (arg === '--format') {
       const format = args[++i];
+      if (!format) {
+        console.error('Error: --format requires a value (markdown, text, json, csv, txt, or xml)');
+        process.exit(1);
+      }
       if (!['markdown', 'text', 'json', 'csv', 'txt', 'xml'].includes(format)) {
         console.error(`Error: Invalid format '${format}'. Must be markdown, text, json, csv, txt, or xml.`);
         process.exit(1);
       }
       result.format = format as 'markdown' | 'text' | 'json' | 'csv' | 'txt' | 'xml';
     } else if (arg === '--include') {
-      result.include.push(args[++i]);
+      const value = args[++i];
+      if (!value) {
+        console.error('Error: --include requires a glob pattern');
+        process.exit(1);
+      }
+      result.include.push(value);
     } else if (arg === '--exclude') {
-      result.exclude.push(args[++i]);
+      const value = args[++i];
+      if (!value) {
+        console.error('Error: --exclude requires a glob pattern');
+        process.exit(1);
+      }
+      result.exclude.push(value);
     } else if (arg === '--copy') {
       result.copy = true;
     } else if (arg === '--open-ai') {
       const service = args[++i];
+      if (!service) {
+        console.error('Error: --open-ai requires a service name (chatgpt, claude, or gemini)');
+        process.exit(1);
+      }
       if (!['chatgpt', 'claude', 'gemini'].includes(service)) {
         console.error(`Error: Invalid AI service '${service}'. Must be chatgpt, claude, or gemini.`);
         process.exit(1);
@@ -291,44 +320,54 @@ export function main() {
   // Parse CLI arguments
   const cliArgs = parseArgs(args);
   
+  // Derive effective options, honoring config defaults when CLI flags are absent
+  const effectiveDepth = cliArgs.depth !== undefined ? cliArgs.depth : (fileConfig.defaultDepth as ContextDepth) || ContextDepth.LOGIC;
+  const effectiveFormat = cliArgs.format !== undefined ? cliArgs.format : (fileConfig.defaultFormat as any) || 'markdown';
+  const effectiveCopy = cliArgs.copy !== undefined ? cliArgs.copy : fileConfig.autoCopy || false;
+  const effectiveOpenAI = cliArgs.openAI !== undefined ? cliArgs.openAI : (fileConfig.preferredAI as any);
+  
   // Merge config file with CLI arguments (CLI takes precedence)
-  const fullConfig: ContextPackerConfig & typeof cliArgs = {
+  const fullConfig: ContextPackerConfig & typeof cliArgs & { depth: ContextDepth; format: any; copy: boolean } = {
     ...fileConfig,
     ...cliArgs,
+    depth: effectiveDepth,
+    format: effectiveFormat,
+    copy: effectiveCopy,
+    openAI: effectiveOpenAI,
     // Ensure include/exclude arrays are properly merged
     include: cliArgs.include.length > 0 ? cliArgs.include : fileConfig.include || [],
     exclude: cliArgs.exclude.length > 0 ? cliArgs.exclude : fileConfig.exclude || [],
   };
 
-  if (cliArgs.help || (!cliArgs.functionName && !cliArgs.wizard)) {
+  if (fullConfig.help || (!fullConfig.functionName && !fullConfig.wizard)) {
     printUsage();
-    process.exit(cliArgs.help ? 0 : 1);
+    process.exit(fullConfig.help ? 0 : 1);
   }
   
-  if (cliArgs.wizard) {
+  if (fullConfig.wizard) {
     runWizard();
     process.exit(0);
   }
 
-  const functionName = cliArgs.functionName!;
+  const functionName = fullConfig.functionName!;
 
   // Check if directory exists
-  if (!fs.existsSync(cliArgs.dir)) {
-    console.error(`Error: Directory '${cliArgs.dir}' does not exist.`);
+  if (!fs.existsSync(fullConfig.dir)) {
+    console.error(`Error: Directory '${fullConfig.dir}' does not exist.`);
     process.exit(1);
   }
 
   // Check if this is a multi-function analysis
   if (MultiFunctionAnalyzer.isMultiFunction(functionName)) {
     console.error(`Analyzing multiple functions: ${functionName}`);
-    console.error(`Search directory: ${cliArgs.dir}`);
-    console.error(`Context depth: ${cliArgs.depth}`);
+    console.error(`Search directory: ${fullConfig.dir}`);
+    console.error(`Context depth: ${fullConfig.depth}`);
     console.error('');
 
     // Create context packer
     const packer = new ContextPacker({
-      rootDir: cliArgs.dir,
-      depth: cliArgs.depth,
+      rootDir: fullConfig.dir,
+      depth: fullConfig.depth!,
       include: fullConfig.include.length > 0 ? fullConfig.include : undefined,
       exclude: fullConfig.exclude.length > 0 ? fullConfig.exclude : undefined,
     });
@@ -346,11 +385,11 @@ export function main() {
 
     // Format the output
     let output: string;
-    if (cliArgs.format === 'markdown') {
+    if (fullConfig.format === 'markdown') {
       output = formatMultiAnalysis(result, 'markdown');
-    } else if (cliArgs.format === 'text') {
+    } else if (fullConfig.format === 'text') {
       output = formatMultiAnalysis(result, 'text');
-    } else if (cliArgs.format === 'json') {
+    } else if (fullConfig.format === 'json') {
       output = formatMultiAnalysis(result, 'json');
     } else {
       // For other formats, use JSON for now
@@ -358,15 +397,15 @@ export function main() {
     }
 
     // Write or print output
-    if (cliArgs.output) {
-      fs.writeFileSync(cliArgs.output, output, 'utf-8');
-      console.error(`Output written to: ${cliArgs.output}`);
+    if ((fullConfig as any).output) {
+      fs.writeFileSync((fullConfig as any).output, output, 'utf-8');
+      console.error(`Output written to: ${(fullConfig as any).output}`);
     } else {
       console.log(output);
     }
 
     // Copy to clipboard if requested
-    if (cliArgs.copy) {
+    if (fullConfig.copy) {
       try {
         clipboardy.writeSync(output);
         console.error('✅ Output copied to clipboard!');
@@ -376,20 +415,20 @@ export function main() {
     }
 
     // Open AI assistant if requested
-    if (cliArgs.openAI) {
-      openAIAssistant(cliArgs.openAI, cliArgs.copy);
+    if (fullConfig.openAI) {
+      openAIAssistant(fullConfig.openAI, fullConfig.copy);
     }
   } else {
     // Single function analysis
     console.error(`Analyzing function: ${functionName}`);
-    console.error(`Search directory: ${cliArgs.dir}`);
-    console.error(`Context depth: ${cliArgs.depth}`);
+    console.error(`Search directory: ${fullConfig.dir}`);
+    console.error(`Context depth: ${fullConfig.depth}`);
     console.error('');
 
     // Create context packer
     const packer = new ContextPacker({
-      rootDir: cliArgs.dir,
-      depth: cliArgs.depth,
+      rootDir: fullConfig.dir,
+      depth: fullConfig.depth!,
       include: fullConfig.include.length > 0 ? fullConfig.include : undefined,
       exclude: fullConfig.exclude.length > 0 ? fullConfig.exclude : undefined,
     });
@@ -402,25 +441,25 @@ export function main() {
 
     // Format the output
     let output: string;
-    if (cliArgs.format === 'markdown') {
-      output = formatForLLM(result, cliArgs.dir);
-    } else if (cliArgs.format === 'text') {
-      output = formatAsText(result, cliArgs.dir);
+    if (fullConfig.format === 'markdown') {
+      output = formatForLLM(result, fullConfig.dir);
+    } else if (fullConfig.format === 'text') {
+      output = formatAsText(result, fullConfig.dir);
     } else {
       // Use the new exporter for json, csv, txt, xml
-      output = exportAs(cliArgs.format, result, cliArgs.dir);
+      output = exportAs(fullConfig.format!, result, fullConfig.dir);
     }
 
     // Write or print output
-    if (cliArgs.output) {
-      fs.writeFileSync(cliArgs.output, output, 'utf-8');
-      console.error(`Output written to: ${cliArgs.output}`);
+    if ((fullConfig as any).output) {
+      fs.writeFileSync((fullConfig as any).output, output, 'utf-8');
+      console.error(`Output written to: ${(fullConfig as any).output}`);
     } else {
       console.log(output);
     }
 
     // Copy to clipboard if requested
-    if (cliArgs.copy) {
+    if (fullConfig.copy) {
       try {
         clipboardy.writeSync(output);
         console.error('✅ Output copied to clipboard!');
@@ -430,8 +469,8 @@ export function main() {
     }
 
     // Open AI assistant if requested
-    if (cliArgs.openAI) {
-      openAIAssistant(cliArgs.openAI, cliArgs.copy);
+    if (fullConfig.openAI) {
+      openAIAssistant(fullConfig.openAI, fullConfig.copy!);
     }
   }
 }

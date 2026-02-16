@@ -90,9 +90,17 @@ export class ContextPacker {
       this.options.exclude
     );
 
+    // Count only supported files (TypeScript/JavaScript files)
+    const supportedFiles = files.filter(file => 
+      file.endsWith('.ts') || 
+      file.endsWith('.tsx') || 
+      file.endsWith('.js') || 
+      file.endsWith('.jsx')
+    );
+
     return {
       totalFiles: files.length,
-      supportedFiles: files.length,
+      supportedFiles: supportedFiles.length,
     };
   }
 }
