@@ -1,38 +1,34 @@
-name: PR Tests
+name: PR Tests & Coverage
 
 on:
   pull_request:
-    branches: [main, master]
+    branches: [main, master, dev]
 
 jobs:
   test:
-    name: Run Tests
+    name: Run Tests with Coverage
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
-      - name: Check if tests exist
-        id: check-tests
-        run: |
-          if [ -f "package.json" ] && grep -q '"test"' package.json && ! grep -q '"test": "echo' package.json; then
-            echo "has_tests=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_tests=false" >> $GITHUB_OUTPUT
-            echo "No test script found or test script is a placeholder. Skipping tests."
-          fi
-
-      - name: Setup Bun
-        if: steps.check-tests.outputs.has_tests == 'true'
-        uses: oven-sh/setup-bun@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          bun-version: latest
+          node-version: '20'
+          cache: 'npm'
 
       - name: Install dependencies
-        if: steps.check-tests.outputs.has_tests == 'true'
-        run: bun install
+        run: npm ci
 
-      - name: Run tests
-        if: steps.check-tests.outputs.has_tests == 'true'
-        run: bun test
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          fail_ci_if_error: false
+          files: ./coverage/coverage-final.json
+          flags: unittests
+          name: codecov-context-packer
