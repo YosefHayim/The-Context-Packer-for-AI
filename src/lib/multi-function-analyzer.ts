@@ -81,8 +81,17 @@ export class MultiFunctionAnalyzer {
  */
 export function formatMultiAnalysis(
   result: MultiAnalysisResult,
-  format: 'markdown' | 'text' | 'json' = 'markdown'
+  format: 'markdown' | 'text' | 'json' = 'markdown',
+  rootDir?: string
 ): string {
+  const path = require('path');
+  
+  // Helper function to get relative path
+  const getRelativePath = (filePath: string): string => {
+    if (!rootDir) return filePath;
+    return path.relative(rootDir, filePath);
+  };
+  
   if (format === 'json') {
     return JSON.stringify({
       functions: result.functions,
@@ -91,7 +100,7 @@ export function formatMultiAnalysis(
         function: name,
         references: data.references.length,
         details: data.references.map(ref => ({
-          file: ref.location.filePath,
+          file: getRelativePath(ref.location.filePath),
           line: ref.location.line,
           column: ref.location.column,
           context: ref.context,
@@ -111,7 +120,7 @@ export function formatMultiAnalysis(
     for (const [functionName, data] of result.results) {
       output += `--- ${functionName} (${data.references.length} references) ---\n`;
       data.references.forEach((ref, idx) => {
-        output += `  ${idx + 1}. ${ref.location.filePath}:${ref.location.line}\n`;
+        output += `  ${idx + 1}. ${getRelativePath(ref.location.filePath)}:${ref.location.line}\n`;
       });
       output += '\n';
     }
@@ -131,7 +140,7 @@ export function formatMultiAnalysis(
     output += `**References:** ${data.references.length}\n\n`;
 
     data.references.forEach((ref, idx) => {
-      output += `### Reference ${idx + 1}: \`${ref.location.filePath}:${ref.location.line}\`\n\n`;
+      output += `### Reference ${idx + 1}: \`${getRelativePath(ref.location.filePath)}:${ref.location.line}\`\n\n`;
       output += '```typescript\n';
       output += ref.context;
       output += '\n```\n\n';

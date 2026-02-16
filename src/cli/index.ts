@@ -386,14 +386,14 @@ export function main() {
     // Format the output
     let output: string;
     if (fullConfig.format === 'markdown') {
-      output = formatMultiAnalysis(result, 'markdown');
+      output = formatMultiAnalysis(result, 'markdown', fullConfig.dir);
     } else if (fullConfig.format === 'text') {
-      output = formatMultiAnalysis(result, 'text');
+      output = formatMultiAnalysis(result, 'text', fullConfig.dir);
     } else if (fullConfig.format === 'json') {
-      output = formatMultiAnalysis(result, 'json');
+      output = formatMultiAnalysis(result, 'json', fullConfig.dir);
     } else {
       // For other formats, use JSON for now
-      output = formatMultiAnalysis(result, 'json');
+      output = formatMultiAnalysis(result, 'json', fullConfig.dir);
     }
 
     // Write or print output
