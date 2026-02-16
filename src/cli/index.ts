@@ -391,8 +391,13 @@ export function main() {
       output = formatMultiAnalysis(result, 'text', fullConfig.dir);
     } else if (fullConfig.format === 'json') {
       output = formatMultiAnalysis(result, 'json', fullConfig.dir);
+    } else if (['csv', 'txt', 'xml'].includes(fullConfig.format!)) {
+      // Multi-function analysis currently only supports markdown, text, and json
+      console.error(`Warning: Multi-function analysis does not support ${fullConfig.format} format.`);
+      console.error(`Using JSON format instead. For ${fullConfig.format} export, analyze functions individually.`);
+      output = formatMultiAnalysis(result, 'json', fullConfig.dir);
     } else {
-      // For other formats, use JSON for now
+      // Fallback to JSON
       output = formatMultiAnalysis(result, 'json', fullConfig.dir);
     }
 
