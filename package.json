@@ -1,6 +1,34 @@
 {
+  "name": "context-packer",
+  "version": "0.1.3",
+  "description": "Extract semantic context around function calls for AI assistants",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "context-packer": "dist/cli/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": [
+    "ai",
+    "context",
+    "llm",
+    "code-analysis",
+    "ast",
+    "semantic"
+  ],
+  "author": "",
+  "license": "MIT",
   "dependencies": {
+    "@typescript-eslint/parser": "^8.56.0",
+    "@typescript-eslint/typescript-estree": "^8.56.0",
     "glob": "^13.0.2"
   },
-  "version": "0.1.3"
+  "devDependencies": {
+    "@types/node": "^25.2.3",
+    "typescript": "^5.9.3"
+  }
 }
