@@ -15,6 +15,8 @@ Context Packer uses **semantic code analysis** (not text search) to:
 1. ✅ Find every location where a function is called
 2. ✅ Extract the right amount of context (snippet, function, or file)
 3. ✅ Format it perfectly for LLMs with file paths, line numbers, and syntax highlighting
+4. ✅ Analyze multiple functions simultaneously
+5. ✅ Auto-copy to clipboard and open AI assistants
 
 ## Installation
 
@@ -36,6 +38,9 @@ npm install context-packer
 # Find all references to a function
 context-packer handleSubmit
 
+# 🆕 Analyze multiple functions at once
+context-packer validateUser,hashPassword,processData
+
 # Search in a specific directory
 context-packer handleSubmit --dir ./src
 
@@ -52,6 +57,27 @@ context-packer myFunction --copy --open-ai chatgpt
 context-packer myFunction --copy --open-ai claude
 context-packer myFunction --copy --open-ai gemini
 ```
+
+### Configuration File (New!)
+
+Create `.contextpackerrc.json` in your project root:
+
+```json
+{
+  "defaultDepth": "logic",
+  "defaultFormat": "markdown",
+  "exclude": ["**/node_modules/**", "**/dist/**", "**/*.test.ts"],
+  "autoCopy": false,
+  "preferredAI": "chatgpt"
+}
+```
+
+Then just run:
+```bash
+context-packer myFunction  # Uses your config defaults!
+```
+
+CLI flags override config file settings. See `.contextpackerrc.example.json` for all options.
 
 ### Library Usage
 
@@ -71,7 +97,52 @@ console.log(markdown);
 
 ## 🚀 New Features
 
-### 🔥 Auto-Copy & Open AI Assistant (Latest!)
+### 🔥 Multi-Function Analysis (Latest!)
+Analyze multiple functions in a single command:
+
+```bash
+# Analyze multiple functions at once
+context-packer validateUser,hashPassword,processData
+
+# With options
+context-packer func1,func2,func3 --depth logic --format json
+
+# Copy all results and open AI assistant
+context-packer login,logout,register --copy --open-ai chatgpt
+```
+
+**Output includes:**
+- Summary statistics (total references, files scanned)
+- Individual analysis for each function
+- Aggregated context across all functions
+
+Perfect for understanding how multiple related functions interact!
+
+### ⚙️ Configuration File Support (Latest!)
+Save your preferences in `.contextpackerrc.json`:
+
+```json
+{
+  "defaultDepth": "logic",
+  "defaultFormat": "markdown",
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["**/node_modules/**", "**/dist/**", "**/*.test.ts"],
+  "autoCopy": false,
+  "preferredAI": "chatgpt",
+  "customAIServices": {
+    "perplexity": "https://www.perplexity.ai"
+  }
+}
+```
+
+Then simply run:
+```bash
+context-packer myFunction  # Uses your config!
+```
+
+CLI flags always override config file settings.
+
+### 🤖 Auto-Copy & Open AI Assistant
 Automatically copy analysis to clipboard and open your AI assistant:
 
 ```bash
@@ -99,19 +170,21 @@ context-packer myFunction --copy
 - `claude` - Opens https://claude.ai
 - `gemini` - Opens https://gemini.google.com
 
-### Interactive Setup Wizard
+### 🧙 Interactive Setup Wizard
 Get started quickly with guided examples:
 ```bash
 context-packer --wizard
 ```
 
 The wizard shows you:
-- 7 common use cases with ready-to-run commands
+- 9 common use cases with ready-to-run commands
+- Multi-function analysis examples
+- Config file setup
 - Quick start examples
 - All available export formats
 - Help documentation links
 
-### Multiple Export Formats
+### 📊 Multiple Export Formats
 Export your analysis in the format you need:
 
 ```bash
@@ -126,17 +199,20 @@ context-packer myFunc --format csv --output report.csv
 
 # For legacy systems
 context-packer myFunc --format xml --output data.xml
+
+# Simple plain text
+context-packer myFunc --format txt --output simple.txt
 ```
 
 **Available formats:** `markdown`, `text`, `json`, `csv`, `txt`, `xml`
 
 See [docs/EXPORT_FORMATS.md](docs/EXPORT_FORMATS.md) for detailed format documentation.
 
-### Comprehensive Testing
-Now with 63 unit tests covering all functionality:
+### ✅ Comprehensive Testing
+Now with 97 unit tests covering all functionality:
 
 ```bash
-npm test              # Run all tests
+npm test              # Run all 97 tests
 npm run test:watch   # Watch mode
 npm run test:coverage # With coverage report
 ```
@@ -192,12 +268,28 @@ Shows the entire file where the function is used.
 
 | Option | Description | Default |
 |--------|-------------|---------|
+| `<function-name>` | Function name(s) to analyze (comma-separated for multiple) | Required |
 | `--dir <path>` | Root directory to search | Current directory |
 | `--depth <level>` | Context depth: `snippet`/`logic`/`module` | `logic` |
 | `--output <file>` | Write to file instead of stdout | - |
-| `--format <type>` | Output format: `markdown`/`text` | `markdown` |
+| `--format <type>` | Output format: `markdown`/`text`/`json`/`csv`/`txt`/`xml` | `markdown` |
 | `--include <pattern>` | File patterns to include (can repeat) | `**/*.{ts,tsx,js,jsx}` |
 | `--exclude <pattern>` | File patterns to exclude (can repeat) | `node_modules`, `dist`, etc. |
+| `--copy` | Copy output to clipboard | `false` |
+| `--open-ai <service>` | Open AI assistant: `chatgpt`/`claude`/`gemini` | - |
+| `--wizard, -w` | Run interactive setup wizard | - |
+| `--help, -h` | Show help message | - |
+
+**Config file options** (in `.contextpackerrc.json`):
+- `defaultDepth`: Default context depth
+- `defaultFormat`: Default export format
+- `include`: File patterns to include
+- `exclude`: File patterns to exclude
+- `autoCopy`: Auto-copy to clipboard
+- `preferredAI`: Preferred AI service
+- `customAIServices`: Custom AI service URLs
+- `cache`: Enable caching (future feature)
+- `cacheDir`: Cache directory path
 | `--help` | Show help message | - |
 
 ## Examples
