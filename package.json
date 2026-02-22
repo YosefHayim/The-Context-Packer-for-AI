@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "context-packer": "dist/cli/index.js"
+    "context-packer": "dist/cli/index.js",
+    "context-packer-mcp": "dist/mcp/server.js"
   },
   "scripts": {
     "build": "tsc",
@@ -50,6 +51,7 @@
     "LICENSE"
   ],
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
     "@typescript-eslint/typescript-estree": "^8.56.0",
     "clipboardy": "^5.3.0",
     "glob": "^13.0.3",

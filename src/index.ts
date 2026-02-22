@@ -14,6 +14,8 @@ export { parseFile, getFileContent, getLine, getLines } from './lib/parser';
 export { FileCache, getASTCache, getContentCache, clearAllCaches, getCacheStats } from './lib/cache';
 export { saveSnapshot, loadSnapshot, diffAnalysis, formatDiff } from './lib/diff';
 export { createWatcher, Watcher, type WatcherOptions } from './lib/watcher';
+export { parsePythonFile, findPythonReferences, getPythonFileContent, findPythonEnclosingScope } from './lib/python-parser';
+export { startInteractiveMode, parseInteractiveCommand, type TUIOptions } from './lib/tui';
 export { findFiles, findFilesSync, isSupportedFile } from './utils/file-scanner';
 export {
   DEFAULT_INCLUDE_PATTERNS,

@@ -1,0 +1,81 @@
+{
+  "name": "context-packer-vscode",
+  "displayName": "Context Packer for AI",
+  "description": "AST-based function reference analysis for AI-assisted development",
+  "version": "0.1.0",
+  "publisher": "context-packer",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YosefHayim/The-Context-Packer-for-AI"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:typescript",
+    "onLanguage:javascript",
+    "onLanguage:typescriptreact",
+    "onLanguage:javascriptreact"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "contextPacker.analyzeFunction",
+        "title": "Context Packer: Analyze Function"
+      },
+      {
+        "command": "contextPacker.analyzeAndCopy",
+        "title": "Context Packer: Analyze Function & Copy to Clipboard"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "contextPacker.analyzeFunction",
+          "group": "contextPacker"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Context Packer",
+      "properties": {
+        "contextPacker.defaultDepth": {
+          "type": "string",
+          "default": "logic",
+          "enum": [
+            "snippet",
+            "logic",
+            "module"
+          ],
+          "description": "Default context depth level for analysis"
+        },
+        "contextPacker.exclude": {
+          "type": "array",
+          "default": [
+            "**/node_modules/**",
+            "**/dist/**"
+          ],
+          "description": "Glob patterns to exclude from analysis"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "watch": "tsc -watch -p .",
+    "package": "npx @vscode/vsce package"
+  },
+  "dependencies": {
+    "context-packer": "file:.."
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.9.3"
+  }
+}

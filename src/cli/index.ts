@@ -14,6 +14,7 @@ import * as fs from 'fs';
 import clipboardy from 'clipboardy';
 import open from 'open';
 import { clearAllCaches } from '../lib/cache';
+import { startInteractiveMode } from '../lib/tui';
 
 /**
  * Print usage information
@@ -112,6 +113,7 @@ interface ParsedArgs {
   diff?: string;
   saveSnapshot?: string;
   watch?: boolean;
+  interactive?: boolean;
 }
 
 /**
@@ -210,6 +212,8 @@ function parseArgs(args: string[]): ParsedArgs {
         process.exit(1);
       }
       result.saveSnapshot = args[++i];
+    } else if (arg === '--interactive' || arg === '-i') {
+      result.interactive = true;
     } else if (arg === '--version' || arg === '-v') {
       const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf-8'));
       console.log(pkg.version);
@@ -365,6 +369,16 @@ export function main() {
     include: cliArgs.include.length > 0 ? cliArgs.include : fileConfig.include || [],
     exclude: cliArgs.exclude.length > 0 ? cliArgs.exclude : fileConfig.exclude || [],
   };
+
+  if (fullConfig.interactive) {
+    startInteractiveMode({
+      rootDir: fullConfig.dir,
+      depth: effectiveDepth,
+      include: fullConfig.include.length > 0 ? fullConfig.include : undefined,
+      exclude: fullConfig.exclude.length > 0 ? fullConfig.exclude : undefined,
+    });
+    return;
+  }
 
   if (fullConfig.help || (!fullConfig.functionName && !fullConfig.wizard)) {
     printUsage();

@@ -9,6 +9,7 @@ export const DEFAULT_INCLUDE_PATTERNS = [
   '**/*.tsx',
   '**/*.js',
   '**/*.jsx',
+  '**/*.py',
 ];
 
 /** Default file patterns to exclude from analysis */
@@ -21,7 +22,7 @@ export const DEFAULT_EXCLUDE_PATTERNS = [
 ];
 
 /** Supported file extensions for analysis */
-export const SUPPORTED_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx'];
+export const SUPPORTED_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.py'];
 
 /** Valid context depth values */
 export const VALID_DEPTHS = ['snippet', 'logic', 'module'] as const;
