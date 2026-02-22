@@ -82,6 +82,12 @@ context-packer <func1,func2,...> [options]    # multi-function
 | `--open-ai <svc>` | Open AI assistant: `chatgpt` / `claude` / `gemini` | — |
 | `--wizard`, `-w` | Interactive setup wizard | — |
 | `--help`, `-h` | Show help | — |
+| `--version`, `-v` | Show version number | — |
+| `--no-cache` | Disable AST caching | `false` |
+| `--watch` | Watch mode — re-analyze on file changes | `false` |
+| `--interactive`, `-i` | Interactive TUI mode (REPL) | `false` |
+| `--diff <snapshot>` | Compare current analysis against a saved snapshot | — |
+| `--save-snapshot <file>` | Save current analysis as a snapshot for later diffing | — |
 
 ## Configuration
 
@@ -128,6 +134,35 @@ console.log(markdown);
 | `formatAsText(result, dir)` | Format as plain text |
 | `exportAs(format, result, dir)` | Export as JSON, CSV, XML, TXT |
 
+## MCP Server
+
+Context Packer includes a [Model Context Protocol](https://modelcontextprotocol.io/) server, enabling AI coding tools to query function context directly.
+
+```bash
+# Start the MCP server
+npx context-packer-mcp
+```
+
+**Available tools:**
+
+| Tool | Description |
+|------|-------------|
+| `analyze_function` | Find all references to a function in a codebase |
+| `list_functions` | List all exported functions in a directory |
+
+**MCP client configuration (e.g. for Claude Desktop):**
+
+```json
+{
+  "mcpServers": {
+    "context-packer": {
+      "command": "npx",
+      "args": ["context-packer-mcp"]
+    }
+  }
+}
+```
+
 ## Use Cases
 
 **Bug Fixes** — "Fix this function but don't break the 8 places it's called"
@@ -158,8 +193,9 @@ With Context Packer:
 
 - TypeScript (`.ts`, `.tsx`)
 - JavaScript (`.js`, `.jsx`)
+- Python (`.py`) — regex-based parser (function definitions, class methods, decorators)
 
-> Python, Java, C#, and Go support is on the [roadmap](#roadmap).
+> Java, C#, and Go support is on the [roadmap](#roadmap).
 
 ## Architecture
 
@@ -168,16 +204,23 @@ src/
 ├── cli/index.ts                     # CLI entry point + argument parsing
 ├── lib/
 │   ├── parser.ts                    # AST parsing via @typescript-eslint
+│   ├── python-parser.ts             # Regex-based Python parser
 │   ├── reference-finder.ts          # Semantic call site detection
 │   ├── context-extractor.ts         # Depth-aware context extraction
 │   ├── context-packer.ts            # Main orchestrator class
 │   ├── formatter.ts                 # Markdown + text output formatters
 │   ├── exporter.ts                  # JSON, CSV, XML, TXT export
 │   ├── config-loader.ts             # .contextpackerrc.json loader
-│   └── multi-function-analyzer.ts   # Batch multi-function analysis
+│   ├── multi-function-analyzer.ts   # Batch multi-function analysis
+│   ├── cache.ts                     # AST cache with mtime invalidation + LRU
+│   ├── diff.ts                      # Snapshot save/load/compare
+│   ├── watcher.ts                   # Watch mode with debounce
+│   └── tui.ts                       # Interactive TUI (REPL)
+├── mcp/server.ts                    # MCP server (Model Context Protocol)
+├── constants.ts                     # Shared constants
 ├── types/index.ts                   # TypeScript type definitions
 ├── utils/file-scanner.ts            # Glob-based file discovery
-└── tests/                           # 97 unit tests (Vitest)
+└── tests/                           # 218+ unit tests (Vitest)
 ```
 
 ## Development
@@ -206,14 +249,16 @@ npm run test:watch
 
 ## Roadmap
 
-- [ ] Support for Python, Java, C#, Go
-- [ ] Interactive TUI mode
-- [ ] VS Code extension
+- [x] Python language support (regex-based parser)
+- [x] Interactive TUI mode (`--interactive`)
+- [x] VS Code extension scaffold (`vscode-extension/`)
 - [ ] Configurable output templates
-- [ ] Diff mode (show what would change)
-- [ ] Caching for large codebases
-- [ ] Watch mode for continuous analysis
-- [ ] MCP server integration for AI coding tools
+- [x] Diff mode with `--diff` and `--save-snapshot` flags
+- [x] In-memory AST caching with mtime invalidation (`--no-cache` to disable)
+- [x] Watch mode for continuous analysis (`--watch`)
+- [x] MCP server integration (`context-packer-mcp`)
+- [ ] Java, C#, Go language support
+- [ ] Tree-sitter based Python parser (upgrade from regex)
 
 ## Contributing
 

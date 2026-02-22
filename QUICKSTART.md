@@ -73,6 +73,32 @@ context-packer processPayment --output payment-context.md
 
 **Result:** The AI sees all 15 usages and suggests a backward-compatible solution.
 
+
+## New in v0.2.0
+
+Version 0.2.0 adds several powerful features:
+
+```bash
+# Interactive REPL mode
+context-packer --interactive
+
+# Watch mode — re-analyzes on file changes
+context-packer handleSubmit --watch
+
+# Save a snapshot and diff later
+context-packer handleSubmit --save-snapshot before.json
+# ... make changes ...
+context-packer handleSubmit --diff before.json
+
+# Analyze Python files
+context-packer my_function --dir ./python_project --include "**/*.py"
+
+# Start the MCP server (for AI coding tools)
+npx context-packer-mcp
+```
+
+See [USAGE.md](USAGE.md#new-in-v020) for full details on each feature.
+
 ## 5. Next Steps
 
 - Read the full [README.md](README.md) for all features
@@ -89,6 +115,10 @@ context-packer processPayment --output payment-context.md
 | `context-packer func --depth logic` | Show enclosing functions (default) |
 | `context-packer func --depth module` | Show entire files |
 | `context-packer func --output file.md` | Save to file |
+| `context-packer --interactive` | Interactive REPL mode |
+| `context-packer func --watch` | Watch mode with live reload |
+| `context-packer func --diff snap.json` | Compare against a snapshot |
+| `context-packer --version` | Show version |
 | `context-packer --help` | Show all options |
 
 ---

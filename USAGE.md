@@ -325,6 +325,91 @@ contexts.forEach((ctx) => {
 
 ---
 
+
+## New in v0.2.0
+
+### Interactive Mode
+
+Launch an interactive REPL to explore your codebase without re-running commands:
+
+```bash
+context-packer --interactive
+# or
+context-packer -i
+```
+
+Inside the REPL you can type function names, change depth, switch directories, and more — all without restarting.
+
+### Watch Mode
+
+Continuously re-analyze whenever source files change:
+
+```bash
+context-packer handleSubmit --watch
+```
+
+Great for keeping context up to date during active development. Uses debounced `fs.watch` under the hood.
+
+### Diff Mode (Snapshots)
+
+Save a baseline snapshot and compare later:
+
+```bash
+# Save current state
+context-packer handleSubmit --save-snapshot baseline.json
+
+# … make code changes …
+
+# Compare against baseline
+context-packer handleSubmit --diff baseline.json
+```
+
+Output highlights added, removed, and changed references — perfect for code review.
+
+### AST Caching
+
+Context Packer caches parsed ASTs in memory with mtime-based invalidation and LRU eviction. This is on by default and significantly speeds up repeated analyses.
+
+```bash
+# Disable caching if needed
+context-packer handleSubmit --no-cache
+```
+
+### Python Support
+
+Python files (`.py`) are now analyzed using a regex-based parser that detects function definitions, class methods, and decorators:
+
+```bash
+context-packer my_function --dir ./python_project --include "**/*.py"
+```
+
+> **Note:** The Python parser uses regex pattern matching rather than a full AST. It covers common patterns (top-level functions, class methods, decorated functions) but may miss complex metaprogramming. A Tree-sitter upgrade is on the roadmap.
+
+### MCP Server
+
+The MCP (Model Context Protocol) server lets AI coding tools query function context directly:
+
+```bash
+npx context-packer-mcp
+```
+
+Configure in your MCP client (e.g. Claude Desktop):
+
+```json
+{
+  "mcpServers": {
+    "context-packer": {
+      "command": "npx",
+      "args": ["context-packer-mcp"]
+    }
+  }
+}
+```
+
+Available tools: `analyze_function` and `list_functions`.
+
+---
+
 ## Tips and Best Practices
 
 ### 1. Start with Logic Depth
