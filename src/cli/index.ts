@@ -9,6 +9,7 @@ import { MultiFunctionAnalyzer, formatMultiAnalysis } from '../lib/multi-functio
 import { saveSnapshot as saveSnapshotFn, loadSnapshot, diffAnalysis, formatDiff } from '../lib/diff';
 import { ContextDepth } from '../types';
 import { VALID_DEPTHS, VALID_FORMATS, VALID_AI_SERVICES, AI_SERVICE_URLS } from '../constants';
+import type { OutputFormat, AIServiceName } from '../constants';
 import * as path from 'path';
 import * as fs from 'fs';
 import clipboardy from 'clipboardy';
@@ -127,13 +128,13 @@ interface ParsedArgs {
   dir: string;
   depth?: ContextDepth;
   output?: string;
-  format?: 'markdown' | 'text' | 'json' | 'csv' | 'txt' | 'xml';
+  format?: OutputFormat;
   include: string[];
   exclude: string[];
   help: boolean;
   wizard: boolean;
   copy?: boolean;
-  openAI?: 'chatgpt' | 'claude' | 'gemini';
+  openAI?: AIServiceName;
   noCache?: boolean;
   diff?: string;
   saveSnapshot?: string;

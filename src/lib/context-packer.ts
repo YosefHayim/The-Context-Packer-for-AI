@@ -1,5 +1,5 @@
 import { findFilesSync } from '../utils/file-scanner';
-import { DEFAULT_INCLUDE_PATTERNS, DEFAULT_EXCLUDE_PATTERNS } from '../constants';
+import { DEFAULT_INCLUDE_PATTERNS, DEFAULT_EXCLUDE_PATTERNS, SUPPORTED_EXTENSIONS } from '../constants';
 import { findReferencesInFile } from './reference-finder';
 import { extractMultipleContexts } from './context-extractor';
 import type {
@@ -86,12 +86,9 @@ export class ContextPacker {
       this.options.exclude
     );
 
-    // Count only supported files (TypeScript/JavaScript files)
-    const supportedFiles = files.filter(file => 
-      file.endsWith('.ts') || 
-      file.endsWith('.tsx') || 
-      file.endsWith('.js') || 
-      file.endsWith('.jsx')
+    // Count only supported files
+    const supportedFiles = files.filter(file =>
+      SUPPORTED_EXTENSIONS.some(ext => file.endsWith(ext))
     );
 
     return {

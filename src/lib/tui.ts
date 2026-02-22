@@ -2,15 +2,10 @@ import * as readline from 'readline';
 import { ContextPacker } from './context-packer';
 import { formatForLLM } from './formatter';
 import { MultiFunctionAnalyzer, formatMultiAnalysis } from './multi-function-analyzer';
-import { ContextDepth } from '../types';
+import type { ContextPackerOptions } from '../types';
 
-/** Options for the interactive TUI mode */
-export interface TUIOptions {
-  rootDir: string;
-  depth: ContextDepth;
-  include?: string[];
-  exclude?: string[];
-}
+/** Options for the interactive TUI mode — subset of ContextPackerOptions */
+export type TUIOptions = Pick<ContextPackerOptions, 'rootDir' | 'depth' | 'include' | 'exclude'>;
 
 /** Parsed interactive command result */
 export interface ParsedCommand {

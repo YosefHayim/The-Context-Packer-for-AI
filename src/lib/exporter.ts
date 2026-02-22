@@ -1,5 +1,6 @@
 import * as path from 'path';
 import type { AnalysisResult } from '../types';
+import type { OutputFormat } from '../constants';
 import { formatForLLM, formatAsText } from './formatter';
 
 /**
@@ -137,7 +138,7 @@ function escapeXML(str: string): string {
  * Unified export function that delegates to appropriate formatter
  */
 export function exportAs(
-  format: 'json' | 'csv' | 'txt' | 'xml' | 'markdown' | 'text',
+  format: OutputFormat,
   result: AnalysisResult,
   rootDir: string
 ): string {

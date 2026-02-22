@@ -33,6 +33,15 @@ export const VALID_FORMATS = ['markdown', 'text', 'json', 'csv', 'txt', 'xml'] a
 /** Valid AI service names */
 export const VALID_AI_SERVICES = ['chatgpt', 'claude', 'gemini'] as const;
 
+/** Derived type: valid depth level */
+export type DepthLevel = typeof VALID_DEPTHS[number];
+
+/** Derived type: valid output format */
+export type OutputFormat = typeof VALID_FORMATS[number];
+
+/** Derived type: valid AI service name */
+export type AIServiceName = typeof VALID_AI_SERVICES[number];
+
 /** AI service URLs */
 export const AI_SERVICE_URLS: Record<string, string> = {
   chatgpt: 'https://chat.openai.com',

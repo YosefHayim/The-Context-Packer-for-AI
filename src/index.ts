@@ -28,6 +28,12 @@ export {
 } from './constants';
 
 export {
+  type DepthLevel,
+  type OutputFormat,
+  type AIServiceName,
+} from './constants';
+
+export {
   ContextDepth,
   type CodeLocation,
   type FunctionReference,

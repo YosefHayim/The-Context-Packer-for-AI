@@ -11,11 +11,12 @@ import {
   VALID_DEPTHS,
   VALID_FORMATS,
 } from '../constants';
+import type { DepthLevel, OutputFormat } from '../constants';
 
 export interface ContextPackerConfig {
   // Analysis options
-  defaultDepth?: 'snippet' | 'logic' | 'module';
-  defaultFormat?: 'markdown' | 'text' | 'json' | 'csv' | 'txt' | 'xml';
+  defaultDepth?: DepthLevel;
+  defaultFormat?: OutputFormat;
   
   // File patterns
   include?: string[];
