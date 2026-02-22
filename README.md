@@ -10,17 +10,25 @@
 <p align="center">
   <a href="https://github.com/YosefHayim/The-Context-Packer-for-AI/actions"><img src="https://github.com/YosefHayim/The-Context-Packer-for-AI/actions/workflows/pr-tests.yml/badge.svg" alt="CI" /></a>
   <a href="https://github.com/YosefHayim/The-Context-Packer-for-AI/releases"><img src="https://img.shields.io/github/v/release/YosefHayim/The-Context-Packer-for-AI" alt="Release" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" alt="License" /></a>
   <a href="https://github.com/YosefHayim/The-Context-Packer-for-AI/issues"><img src="https://img.shields.io/github/issues/YosefHayim/The-Context-Packer-for-AI" alt="Issues" /></a>
 </p>
 
 ---
 
-## The Problem
+## What Is This?
 
-When you ask an AI to fix a function, it edits the code in isolation — then breaks your app because it can't see where that function is called. You end up on a manual scavenger hunt through your codebase, copying references one by one.
+Context Packer is a CLI tool and library that gives AI assistants the context they actually need to write correct code. Instead of dumping your entire codebase into a prompt or hoping the AI guesses right, Context Packer uses AST parsing to find every real call site of a function, extracts the surrounding scope, and formats it into clean markdown ready for any LLM.
 
-**Context Packer** automates this. It uses the TypeScript AST parser (not grep) to find every call site, extract the right amount of surrounding context, and format it for LLMs — so the AI sees the full picture before suggesting changes.
+It works with TypeScript, JavaScript, and Python. It ships as a CLI, a Node.js library, and an MCP server that AI coding tools can query directly.
+
+## Why It Exists
+
+Every developer using AI coding assistants hits the same wall: the AI edits a function in isolation, then breaks the 12 places that call it. You end up on a manual scavenger hunt — copying call sites one by one, pasting them into a chat, and praying you didn't miss one.
+
+This project was created to solve that problem once and for all. Rather than relying on text search (which matches comments, strings, and unrelated identifiers), Context Packer parses the actual AST to find real function calls, extracts the right amount of surrounding context based on what you need, and outputs LLM-optimized markdown with file paths and syntax highlighting.
+
+The result: AI assistants that see the full picture before suggesting changes, and code that doesn't break on deploy.
 
 ## Quick Start
 
@@ -286,7 +294,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ## License
 
-[MIT](LICENSE)
+[Apache-2.0](LICENSE)
 
 ---
 
