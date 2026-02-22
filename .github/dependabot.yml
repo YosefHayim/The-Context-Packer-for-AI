@@ -7,7 +7,7 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 10
-    target-branch: "dev"
+    target-branch: "main"
     labels:
       - "dependencies"
     commit-message:
@@ -26,7 +26,7 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 5
-    target-branch: "dev"
+    target-branch: "main"
     labels:
       - "dependencies"
     commit-message:
