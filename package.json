@@ -1,6 +1,6 @@
 {
   "name": "context-packer",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Extract semantic context around function calls for AI assistants",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -45,7 +45,7 @@ describe('diff', () => {
       expect(parsed.references).toHaveLength(2);
       expect(parsed.count).toBe(2);
       expect(parsed.timestamp).toBeDefined();
-      expect(parsed.version).toBe('0.1.5');
+      expect(parsed.version).toBe('0.2.0');
     });
 
     it('should create parent directories if they do not exist', () => {
@@ -66,7 +66,7 @@ describe('diff', () => {
       expect(loaded.functionName).toBe('testFunc');
       expect(loaded.references).toHaveLength(2);
       expect(loaded.timestamp).toBeDefined();
-      expect(loaded.version).toBe('0.1.5');
+      expect(loaded.version).toBe('0.2.0');
     });
 
     it('should throw if file does not exist', () => {

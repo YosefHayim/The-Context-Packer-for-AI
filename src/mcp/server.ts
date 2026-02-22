@@ -14,7 +14,7 @@ import { ContextDepth } from '../types/index.js';
 
 const server = new McpServer({
   name: 'context-packer',
-  version: '0.1.5',
+  version: '0.2.0',
 });
 
 server.tool(

@@ -44,7 +44,7 @@ export function saveSnapshot(result: AnalysisResult, outputPath: string): void {
   const snapshot: AnalysisSnapshot = {
     ...result,
     timestamp: new Date().toISOString(),
-    version: '0.1.5',
+    version: '0.2.0',
   };
 
   const dir = path.dirname(outputPath);

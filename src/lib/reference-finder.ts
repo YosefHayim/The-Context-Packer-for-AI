@@ -1,6 +1,7 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/typescript-estree';
 import type { TSESTree } from '@typescript-eslint/typescript-estree';
 import { parseFile } from './parser';
+import { findPythonReferences, parsePythonFile } from './python-parser';
 import type { CodeLocation } from '../types';
 
 /**
@@ -10,6 +11,10 @@ export function findReferencesInFile(
   filePath: string,
   functionName: string
 ): CodeLocation[] {
+  if (filePath.endsWith('.py')) {
+    return findPythonReferences(filePath, functionName);
+  }
+
   const ast = parseFile(filePath);
   if (!ast) {
     return [];
@@ -69,12 +74,61 @@ export function findReferencesInFile(
 }
 
 /**
+ * Find the enclosing Python scope with line range for a given line number.
+ * Uses parsePythonFile AST to find the innermost function/class/method.
+ */
+function findPythonEnclosingScopeWithLines(
+  filePath: string,
+  line: number
+): { name: string; startLine: number; endLine: number } | null {
+  const pythonAst = parsePythonFile(filePath);
+
+  let best: { name: string; startLine: number; endLine: number } | null = null;
+  let bestSize = Infinity;
+
+  for (const func of pythonAst.functions) {
+    if (func.startLine <= line && func.endLine >= line) {
+      const size = func.endLine - func.startLine;
+      if (size < bestSize) {
+        best = { name: func.name, startLine: func.startLine, endLine: func.endLine };
+        bestSize = size;
+      }
+    }
+  }
+
+  for (const cls of pythonAst.classes) {
+    if (cls.startLine <= line && cls.endLine >= line) {
+      const size = cls.endLine - cls.startLine;
+      if (size < bestSize) {
+        best = { name: cls.name, startLine: cls.startLine, endLine: cls.endLine };
+        bestSize = size;
+      }
+    }
+    for (const method of cls.methods) {
+      if (method.startLine <= line && method.endLine >= line) {
+        const size = method.endLine - method.startLine;
+        if (size < bestSize) {
+          best = { name: method.name, startLine: method.startLine, endLine: method.endLine };
+          bestSize = size;
+        }
+      }
+    }
+  }
+
+  return best;
+}
+
+/**
  * Find the enclosing function/scope for a given location
  */
 export function findEnclosingScope(
   filePath: string,
   location: CodeLocation
 ): { name: string; startLine: number; endLine: number } | null {
+  if (filePath.endsWith('.py')) {
+    return findPythonEnclosingScopeWithLines(filePath, location.line);
+  }
+
   const ast = parseFile(filePath);
   if (!ast) {
     return null;

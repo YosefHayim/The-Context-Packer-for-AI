@@ -40,6 +40,11 @@ OPTIONS:
   --exclude <pattern> File patterns to exclude (can be specified multiple times)
   --copy              Copy output to clipboard
   --open-ai <service> Open AI assistant: chatgpt|claude|gemini
+  --no-cache          Disable AST and content caching
+  --watch             Watch for file changes and re-run analysis
+  --interactive, -i   Start interactive TUI mode
+  --diff <snapshot>   Compare with a previous analysis snapshot
+  --save-snapshot <file>  Save analysis result as a snapshot
   --help, -h          Show this help message
   --wizard, -w        Run interactive setup wizard
   --version, -v       Show version number
@@ -70,6 +75,16 @@ EXPORT FORMATS:
   txt       - Simple plain text without formatting
   xml       - XML structured format
 
+ANALYSIS MODES:
+  --interactive     Start an interactive REPL. Type function names to analyze.
+                    Commands: help, stats, quit
+  --watch           After initial analysis, watch for file changes and
+                    re-run automatically
+  --diff <file>     Load a saved snapshot and compare with current analysis.
+                    Shows added/removed/unchanged references
+  --save-snapshot   Save the analysis result as a JSON snapshot for later
+                    comparison with --diff
+
 EXAMPLES:
   # Find all references to 'handleSubmit' with logic context
   context-packer handleSubmit
@@ -88,6 +103,16 @@ EXAMPLES:
 
   # Custom file patterns
   context-packer myFunc --include "**/*.ts" --exclude "**/test/**"
+
+  # Interactive mode
+  context-packer --interactive --dir ./src
+
+  # Watch mode
+  context-packer myFunc --watch
+
+  # Save and compare snapshots
+  context-packer myFunc --save-snapshot snap.json
+  context-packer myFunc --diff snap.json
 
 CONTEXT DEPTHS:
   snippet  - Just the line where the function is called
