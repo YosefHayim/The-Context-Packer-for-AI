@@ -1,5 +1,5 @@
 import { findFilesSync } from '../utils/file-scanner';
-import { DEFAULT_INCLUDE_PATTERNS, DEFAULT_EXCLUDE_PATTERNS, SUPPORTED_EXTENSIONS } from '../constants';
+import { DEFAULT_INCLUDE_PATTERNS, DEFAULT_EXCLUDE_PATTERNS } from '../constants';
 import { findReferencesInFile } from './reference-finder';
 import { extractMultipleContexts } from './context-extractor';
 import type {

@@ -1,5 +1,6 @@
 import { parse } from '@typescript-eslint/typescript-estree';
 import * as fs from 'fs';
+import { getASTCache, getContentCache } from './cache';
 import type { CodeLocation } from '../types';
 
 /**
@@ -7,14 +8,20 @@ import type { CodeLocation } from '../types';
  */
 export function parseFile(filePath: string) {
   try {
+    const cached = getASTCache().get(filePath);
+    if (cached) return cached;
+
     const content = fs.readFileSync(filePath, 'utf-8');
     
-    return parse(content, {
+    const ast = parse(content, {
       loc: true,
       range: true,
       comment: true,
       jsx: filePath.endsWith('.tsx') || filePath.endsWith('.jsx'),
     });
+
+    getASTCache().set(filePath, ast);
+    return ast;
   } catch (error) {
     console.warn(`Failed to parse ${filePath}:`, error);
     return null;
@@ -26,7 +33,12 @@ export function parseFile(filePath: string) {
  */
 export function getFileContent(filePath: string): string {
   try {
-    return fs.readFileSync(filePath, 'utf-8');
+    const cached = getContentCache().get(filePath);
+    if (cached) return cached;
+
+    const content = fs.readFileSync(filePath, 'utf-8');
+    getContentCache().set(filePath, content);
+    return content;
   } catch (error) {
     throw new Error(
       `Failed to read file ${filePath}: ${error instanceof Error ? error.message : String(error)}`

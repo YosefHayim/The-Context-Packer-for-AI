@@ -11,6 +11,9 @@ export { exportAs, formatAsJSON, formatAsCSV, formatAsPlainText, formatAsXML } f
 export { findReferencesInFile, findEnclosingScope } from './lib/reference-finder';
 export { extractReferenceContext, extractMultipleContexts } from './lib/context-extractor';
 export { parseFile, getFileContent, getLine, getLines } from './lib/parser';
+export { FileCache, getASTCache, getContentCache, clearAllCaches, getCacheStats } from './lib/cache';
+export { saveSnapshot, loadSnapshot, diffAnalysis, formatDiff } from './lib/diff';
+export { createWatcher, Watcher, type WatcherOptions } from './lib/watcher';
 export { findFiles, findFilesSync, isSupportedFile } from './utils/file-scanner';
 export {
   DEFAULT_INCLUDE_PATTERNS,

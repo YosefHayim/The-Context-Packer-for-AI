@@ -1,16 +1,19 @@
 #!/usr/bin/env node
 
+import { createWatcher } from '../lib/watcher';
 import { ContextPacker } from '../lib/context-packer';
 import { formatForLLM, formatAsText } from '../lib/formatter';
 import { exportAs } from '../lib/exporter';
 import { loadConfig, ContextPackerConfig } from '../lib/config-loader';
 import { MultiFunctionAnalyzer, formatMultiAnalysis } from '../lib/multi-function-analyzer';
+import { saveSnapshot as saveSnapshotFn, loadSnapshot, diffAnalysis, formatDiff } from '../lib/diff';
 import { ContextDepth } from '../types';
 import { VALID_DEPTHS, VALID_FORMATS, VALID_AI_SERVICES, AI_SERVICE_URLS } from '../constants';
 import * as path from 'path';
 import * as fs from 'fs';
 import clipboardy from 'clipboardy';
 import open from 'open';
+import { clearAllCaches } from '../lib/cache';
 
 /**
  * Print usage information
@@ -105,6 +108,10 @@ interface ParsedArgs {
   wizard: boolean;
   copy?: boolean;
   openAI?: 'chatgpt' | 'claude' | 'gemini';
+  noCache?: boolean;
+  diff?: string;
+  saveSnapshot?: string;
+  watch?: boolean;
 }
 
 /**
@@ -187,6 +194,22 @@ function parseArgs(args: string[]): ParsedArgs {
         process.exit(1);
       }
       result.openAI = service as ParsedArgs['openAI'];
+    } else if (arg === '--no-cache') {
+      result.noCache = true;
+    } else if (arg === '--watch') {
+      result.watch = true;
+    } else if (arg === '--diff') {
+      if (i + 1 >= args.length) {
+        console.error('Error: --diff requires a snapshot file path');
+        process.exit(1);
+      }
+      result.diff = args[++i];
+    } else if (arg === '--save-snapshot') {
+      if (i + 1 >= args.length) {
+        console.error('Error: --save-snapshot requires an output file path');
+        process.exit(1);
+      }
+      result.saveSnapshot = args[++i];
     } else if (arg === '--version' || arg === '-v') {
       const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf-8'));
       console.log(pkg.version);
@@ -199,6 +222,7 @@ function parseArgs(args: string[]): ParsedArgs {
     }
   }
   return { ...result, functionName };
+}
 
 /**
  * Interactive setup wizard
@@ -354,6 +378,11 @@ export function main() {
 
   const functionName = fullConfig.functionName!;
 
+  // Clear caches if --no-cache is set
+  if (fullConfig.noCache) {
+    clearAllCaches();
+  }
+
   // Check if directory exists
   if (!fs.existsSync(fullConfig.dir)) {
     console.error(`Error: Directory '${fullConfig.dir}' does not exist.`);
@@ -456,6 +485,18 @@ export function main() {
     console.error(`Found ${result.count} reference(s)`);
     console.error('');
 
+    if (fullConfig.saveSnapshot) {
+      saveSnapshotFn(result, fullConfig.saveSnapshot);
+      console.error(`Snapshot saved to: ${fullConfig.saveSnapshot}`);
+    }
+
+    if (fullConfig.diff) {
+      const previousSnapshot = loadSnapshot(fullConfig.diff);
+      const diffResult = diffAnalysis(previousSnapshot, result);
+      console.log(formatDiff(diffResult));
+      return;
+    }
+
     // Format the output
     let output: string;
     if (fullConfig.format === 'markdown') {
@@ -498,6 +539,41 @@ export function main() {
     if (fullConfig.openAI) {
       openAIAssistant(fullConfig.openAI, fullConfig.copy!);
     }
+  }
+
+  if (fullConfig.watch) {
+    const watcher = createWatcher({
+      rootDir: fullConfig.dir,
+      onChange: (changedFile: string) => {
+        console.error(`File changed: ${changedFile}, re-analyzing...`);
+        try {
+          const repacker = new ContextPacker({
+            rootDir: fullConfig.dir,
+            depth: fullConfig.depth!,
+            include: fullConfig.include.length > 0 ? fullConfig.include : undefined,
+            exclude: fullConfig.exclude.length > 0 ? fullConfig.exclude : undefined,
+          });
+          const reResult = repacker.analyze(functionName);
+          let reOutput: string;
+          if (fullConfig.format === 'markdown') {
+            reOutput = formatForLLM(reResult, fullConfig.dir);
+          } else if (fullConfig.format === 'text') {
+            reOutput = formatAsText(reResult, fullConfig.dir);
+          } else {
+            reOutput = exportAs(fullConfig.format!, reResult, fullConfig.dir);
+          }
+          console.log(reOutput);
+        } catch (error) {
+          console.error('Re-analysis failed:', error instanceof Error ? error.message : error);
+        }
+      },
+    });
+    watcher.start();
+    console.error(`Watching for changes in ${fullConfig.dir}... (press Ctrl+C to stop)`);
+    process.on('SIGINT', () => {
+      watcher.stop();
+      process.exit(0);
+    });
   }
 }
 
