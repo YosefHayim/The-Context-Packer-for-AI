@@ -1,6 +1,65 @@
 {
-  "dependencies": {
-    "glob": "^13.0.3"
+  "name": "context-packer",
+  "version": "0.1.4",
+  "description": "Extract semantic context around function calls for AI assistants",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "context-packer": "dist/cli/index.js"
   },
-  "version": "0.1.4"
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [
+    "ai",
+    "context",
+    "llm",
+    "code-analysis",
+    "ast",
+    "semantic",
+    "chatgpt",
+    "claude",
+    "copilot",
+    "refactoring",
+    "code-search",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YosefHayim/The-Context-Packer-for-AI.git"
+  },
+  "bugs": {
+    "url": "https://github.com/YosefHayim/The-Context-Packer-for-AI/issues"
+  },
+  "homepage": "https://github.com/YosefHayim/The-Context-Packer-for-AI#readme",
+  "engines": {
+    "node": "^18.18.0 || ^20.9.0 || >=21.1.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "USAGE.md",
+    "QUICKSTART.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@typescript-eslint/typescript-estree": "^8.56.0",
+    "clipboardy": "^5.3.0",
+    "glob": "^13.0.3",
+    "open": "^11.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.3",
+    "@vitest/coverage-v8": "^4.0.18",
+    "@vitest/ui": "^4.0.18",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
 }

@@ -1,0 +1,24 @@
+{
+  "defaultDepth": "logic",
+  "defaultFormat": "markdown",
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.js",
+    "**/*.jsx"
+  ],
+  "exclude": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ],
+  "autoCopy": false,
+  "preferredAI": "chatgpt",
+  "customAIServices": {
+    "perplexity": "https://www.perplexity.ai",
+    "copilot": "https://copilot.microsoft.com"
+  },
+  "cache": false,
+  "cacheDir": ".context-packer-cache"
+}
