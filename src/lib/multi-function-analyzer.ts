@@ -3,6 +3,7 @@
  * Analyzes multiple functions and aggregates results
  */
 
+import * as path from 'path';
 import { ContextPacker } from './context-packer';
 import { AnalysisResult } from '../types';
 
@@ -84,7 +85,7 @@ export function formatMultiAnalysis(
   format: 'markdown' | 'text' | 'json' = 'markdown',
   rootDir?: string
 ): string {
-  const path = require('path');
+  // path is imported at top of file
   
   // Helper function to get relative path
   const getRelativePath = (filePath: string): string => {

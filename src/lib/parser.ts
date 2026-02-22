@@ -25,7 +25,13 @@ export function parseFile(filePath: string) {
  * Get the source code from a file
  */
 export function getFileContent(filePath: string): string {
-  return fs.readFileSync(filePath, 'utf-8');
+  try {
+    return fs.readFileSync(filePath, 'utf-8');
+  } catch (error) {
+    throw new Error(
+      `Failed to read file ${filePath}: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
 }
 
 /**

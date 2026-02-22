@@ -1,4 +1,5 @@
 import { findFilesSync } from '../utils/file-scanner';
+import { DEFAULT_INCLUDE_PATTERNS, DEFAULT_EXCLUDE_PATTERNS, SUPPORTED_EXTENSIONS } from '../constants';
 import { findReferencesInFile } from './reference-finder';
 import { extractMultipleContexts } from './context-extractor';
 import type {
@@ -18,13 +19,8 @@ export class ContextPacker {
   constructor(options: ContextPackerOptions) {
     this.options = {
       rootDir: options.rootDir,
-      include: options.include || ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
-      exclude: options.exclude || [
-        '**/node_modules/**',
-        '**/dist/**',
-        '**/build/**',
-        '**/.git/**',
-      ],
+      include: options.include || [...DEFAULT_INCLUDE_PATTERNS],
+      exclude: options.exclude || [...DEFAULT_EXCLUDE_PATTERNS],
       depth: options.depth,
       maxContextLines: options.maxContextLines || 100,
     };

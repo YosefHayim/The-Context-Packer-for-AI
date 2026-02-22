@@ -12,6 +12,15 @@ export { findReferencesInFile, findEnclosingScope } from './lib/reference-finder
 export { extractReferenceContext, extractMultipleContexts } from './lib/context-extractor';
 export { parseFile, getFileContent, getLine, getLines } from './lib/parser';
 export { findFiles, findFilesSync, isSupportedFile } from './utils/file-scanner';
+export {
+  DEFAULT_INCLUDE_PATTERNS,
+  DEFAULT_EXCLUDE_PATTERNS,
+  SUPPORTED_EXTENSIONS,
+  VALID_DEPTHS,
+  VALID_FORMATS,
+  VALID_AI_SERVICES,
+  AI_SERVICE_URLS,
+} from './constants';
 
 export {
   ContextDepth,

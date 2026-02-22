@@ -6,6 +6,7 @@ import { exportAs } from '../lib/exporter';
 import { loadConfig, ContextPackerConfig } from '../lib/config-loader';
 import { MultiFunctionAnalyzer, formatMultiAnalysis } from '../lib/multi-function-analyzer';
 import { ContextDepth } from '../types';
+import { VALID_DEPTHS, VALID_FORMATS, VALID_AI_SERVICES, AI_SERVICE_URLS } from '../constants';
 import * as path from 'path';
 import * as fs from 'fs';
 import clipboardy from 'clipboardy';
@@ -37,6 +38,7 @@ OPTIONS:
   --open-ai <service> Open AI assistant: chatgpt|claude|gemini
   --help, -h          Show this help message
   --wizard, -w        Run interactive setup wizard
+  --version, -v       Show version number
 
 CONFIGURATION:
   Context Packer looks for .contextpackerrc.json in the current directory
@@ -90,10 +92,8 @@ CONTEXT DEPTHS:
 `);
 }
 
-/**
- * Parse command line arguments
- */
-function parseArgs(args: string[]): {
+/** Parsed CLI arguments */
+interface ParsedArgs {
   functionName?: string;
   dir: string;
   depth?: ContextDepth;
@@ -105,17 +105,21 @@ function parseArgs(args: string[]): {
   wizard: boolean;
   copy?: boolean;
   openAI?: 'chatgpt' | 'claude' | 'gemini';
-} {
-  const result: any = {
+}
+
+/**
+ * Parse command line arguments
+ */
+function parseArgs(args: string[]): ParsedArgs {
+  const result: ParsedArgs = {
     dir: process.cwd(),
-    include: [] as string[],
-    exclude: [] as string[],
+    include: [],
+    exclude: [],
     help: false,
     wizard: false,
   };
 
   let functionName: string | undefined;
-
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
 
@@ -124,68 +128,69 @@ function parseArgs(args: string[]): {
     } else if (arg === '--wizard' || arg === '-w') {
       result.wizard = true;
     } else if (arg === '--dir') {
-      const value = args[++i];
-      if (!value) {
+      if (i + 1 >= args.length) {
         console.error('Error: --dir requires a directory path');
         process.exit(1);
       }
+      const value = args[++i];
       result.dir = path.resolve(value);
     } else if (arg === '--depth') {
-      const depth = args[++i];
-      if (!depth) {
+      if (i + 1 >= args.length) {
         console.error('Error: --depth requires a value (snippet, logic, or module)');
         process.exit(1);
       }
-      if (!['snippet', 'logic', 'module'].includes(depth)) {
+      const depth = args[++i];
+      if (!(VALID_DEPTHS as readonly string[]).includes(depth)) {
         console.error(`Error: Invalid depth '${depth}'. Must be snippet, logic, or module.`);
         process.exit(1);
       }
       result.depth = depth as ContextDepth;
     } else if (arg === '--output') {
-      const value = args[++i];
-      if (!value) {
+      if (i + 1 >= args.length) {
         console.error('Error: --output requires a file path');
         process.exit(1);
       }
-      (result as any).output = value;
+      result.output = args[++i];
     } else if (arg === '--format') {
-      const format = args[++i];
-      if (!format) {
+      if (i + 1 >= args.length) {
         console.error('Error: --format requires a value (markdown, text, json, csv, txt, or xml)');
         process.exit(1);
       }
-      if (!['markdown', 'text', 'json', 'csv', 'txt', 'xml'].includes(format)) {
+      const format = args[++i];
+      if (!(VALID_FORMATS as readonly string[]).includes(format)) {
         console.error(`Error: Invalid format '${format}'. Must be markdown, text, json, csv, txt, or xml.`);
         process.exit(1);
       }
-      result.format = format as 'markdown' | 'text' | 'json' | 'csv' | 'txt' | 'xml';
+      result.format = format as ParsedArgs['format'];
     } else if (arg === '--include') {
-      const value = args[++i];
-      if (!value) {
+      if (i + 1 >= args.length) {
         console.error('Error: --include requires a glob pattern');
         process.exit(1);
       }
-      result.include.push(value);
+      result.include.push(args[++i]);
     } else if (arg === '--exclude') {
-      const value = args[++i];
-      if (!value) {
+      if (i + 1 >= args.length) {
         console.error('Error: --exclude requires a glob pattern');
         process.exit(1);
       }
-      result.exclude.push(value);
+      result.exclude.push(args[++i]);
     } else if (arg === '--copy') {
       result.copy = true;
     } else if (arg === '--open-ai') {
-      const service = args[++i];
-      if (!service) {
+      if (i + 1 >= args.length) {
         console.error('Error: --open-ai requires a service name (chatgpt, claude, or gemini)');
         process.exit(1);
       }
-      if (!['chatgpt', 'claude', 'gemini'].includes(service)) {
+      const service = args[++i];
+      if (!(VALID_AI_SERVICES as readonly string[]).includes(service)) {
         console.error(`Error: Invalid AI service '${service}'. Must be chatgpt, claude, or gemini.`);
         process.exit(1);
       }
-      (result as any).openAI = service;
+      result.openAI = service as ParsedArgs['openAI'];
+    } else if (arg === '--version' || arg === '-v') {
+      const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf-8'));
+      console.log(pkg.version);
+      process.exit(0);
     } else if (!arg.startsWith('-')) {
       functionName = arg;
     } else {
@@ -193,9 +198,7 @@ function parseArgs(args: string[]): {
       process.exit(1);
     }
   }
-
   return { ...result, functionName };
-}
 
 /**
  * Interactive setup wizard
@@ -322,12 +325,12 @@ export function main() {
   
   // Derive effective options, honoring config defaults when CLI flags are absent
   const effectiveDepth = cliArgs.depth !== undefined ? cliArgs.depth : (fileConfig.defaultDepth as ContextDepth) || ContextDepth.LOGIC;
-  const effectiveFormat = cliArgs.format !== undefined ? cliArgs.format : (fileConfig.defaultFormat as any) || 'markdown';
+  const effectiveFormat: ParsedArgs['format'] = cliArgs.format !== undefined ? cliArgs.format : (fileConfig.defaultFormat as ParsedArgs['format']) || 'markdown';
   const effectiveCopy = cliArgs.copy !== undefined ? cliArgs.copy : fileConfig.autoCopy || false;
-  const effectiveOpenAI = cliArgs.openAI !== undefined ? cliArgs.openAI : (fileConfig.preferredAI as any);
+  const effectiveOpenAI: ParsedArgs['openAI'] = cliArgs.openAI !== undefined ? cliArgs.openAI : (fileConfig.preferredAI as ParsedArgs['openAI']);
   
   // Merge config file with CLI arguments (CLI takes precedence)
-  const fullConfig: ContextPackerConfig & typeof cliArgs & { depth: ContextDepth; format: any; copy: boolean } = {
+  const fullConfig: ContextPackerConfig & ParsedArgs & { depth: ContextDepth; format: ParsedArgs['format']; copy: boolean } = {
     ...fileConfig,
     ...cliArgs,
     depth: effectiveDepth,
@@ -402,9 +405,18 @@ export function main() {
     }
 
     // Write or print output
-    if ((fullConfig as any).output) {
-      fs.writeFileSync((fullConfig as any).output, output, 'utf-8');
-      console.error(`Output written to: ${(fullConfig as any).output}`);
+    if (fullConfig.output) {
+      try {
+        const outputDir = path.dirname(path.resolve(fullConfig.output));
+        if (!fs.existsSync(outputDir)) {
+          fs.mkdirSync(outputDir, { recursive: true });
+        }
+        fs.writeFileSync(fullConfig.output, output, 'utf-8');
+        console.error(`Output written to: ${fullConfig.output}`);
+      } catch (error) {
+        console.error(`Error writing output to ${fullConfig.output}:`, error instanceof Error ? error.message : error);
+        process.exit(1);
+      }
     } else {
       console.log(output);
     }
@@ -456,9 +468,18 @@ export function main() {
     }
 
     // Write or print output
-    if ((fullConfig as any).output) {
-      fs.writeFileSync((fullConfig as any).output, output, 'utf-8');
-      console.error(`Output written to: ${(fullConfig as any).output}`);
+    if (fullConfig.output) {
+      try {
+        const outputDir = path.dirname(path.resolve(fullConfig.output));
+        if (!fs.existsSync(outputDir)) {
+          fs.mkdirSync(outputDir, { recursive: true });
+        }
+        fs.writeFileSync(fullConfig.output, output, 'utf-8');
+        console.error(`Output written to: ${fullConfig.output}`);
+      } catch (error) {
+        console.error(`Error writing output to ${fullConfig.output}:`, error instanceof Error ? error.message : error);
+        process.exit(1);
+      }
     } else {
       console.log(output);
     }
@@ -484,17 +505,15 @@ export function main() {
  * Open AI assistant in browser
  */
 function openAIAssistant(service: 'chatgpt' | 'claude' | 'gemini', copied: boolean) {
-  const aiUrls = {
-    chatgpt: 'https://chat.openai.com',
-    claude: 'https://claude.ai',
-    gemini: 'https://gemini.google.com',
-  };
+  const url = AI_SERVICE_URLS[service];
+  if (!url) {
+    console.error(`Error: Unknown AI service '${service}'`);
+    return;
+  }
 
-  const url = aiUrls[service];
   const serviceName = service.charAt(0).toUpperCase() + service.slice(1);
   
   console.error(`🚀 Opening ${serviceName}...`);
-  
   (async () => {
     try {
       await open(url);
