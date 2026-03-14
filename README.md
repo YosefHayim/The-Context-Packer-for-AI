@@ -8,21 +8,23 @@
 </p>
 
 <p align="center">
+  <a href="https://www.npmjs.com/package/context-packer"><img src="https://img.shields.io/npm/v/context-packer" alt="npm version" /></a>
+  <a href="https://www.npmjs.com/package/context-packer"><img src="https://img.shields.io/npm/dm/context-packer" alt="npm downloads" /></a>
   <a href="https://github.com/YosefHayim/The-Context-Packer-for-AI/actions"><img src="https://github.com/YosefHayim/The-Context-Packer-for-AI/actions/workflows/pr-tests.yml/badge.svg" alt="CI" /></a>
   <a href="https://github.com/YosefHayim/The-Context-Packer-for-AI/releases"><img src="https://img.shields.io/github/v/release/YosefHayim/The-Context-Packer-for-AI" alt="Release" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" alt="License" /></a>
-  <a href="https://github.com/YosefHayim/The-Context-Packer-for-AI/issues"><img src="https://img.shields.io/github/issues/YosefHayim/The-Context-Packer-for-AI" alt="Issues" /></a>
+  <a href="https://github.com/YosefHayim/The-Context-Packer-for-AI/issues"><img src="https://img.shields.io/badge/contributors-welcome-brightgreen.svg" alt="Contributors Welcome" /></a>
 </p>
 
 ---
 
-## What Is This?
+## What is it
 
 Context Packer is a CLI tool and library that gives AI assistants the context they actually need to write correct code. Instead of dumping your entire codebase into a prompt or hoping the AI guesses right, Context Packer uses AST parsing to find every real call site of a function, extracts the surrounding scope, and formats it into clean markdown ready for any LLM.
 
 It works with TypeScript, JavaScript, and Python. It ships as a CLI, a Node.js library, and an MCP server that AI coding tools can query directly.
 
-## Why It Exists
+## Why
 
 Every developer using AI coding assistants hits the same wall: the AI edits a function in isolation, then breaks the 12 places that call it. You end up on a manual scavenger hunt — copying call sites one by one, pasting them into a chat, and praying you didn't miss one.
 
@@ -270,16 +272,9 @@ npm run test:watch
 
 ## Contributing
 
-Contributions welcome! This is an early-stage project and we'd love your help.
+PRs and issues welcome. Fork the repo, create a feature branch, and open a pull request.
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feat/amazing-feature`)
-3. Run tests (`npm test`)
-4. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-5. Push to the branch (`git push origin feat/amazing-feature`)
-6. Open a Pull Request
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+---
 
 ## Documentation
 
